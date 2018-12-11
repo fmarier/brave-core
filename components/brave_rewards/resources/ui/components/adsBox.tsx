@@ -78,12 +78,19 @@ class AdsBox extends React.Component<Props, {}> {
 
   render () {
     let adsEnabled
+    let adsUIEnabled
     const { adsData } = this.props.rewardsData
 
     if (!adsData) {
       adsEnabled = false
+      adsUIEnabled = false
     } else {
       adsEnabled = this.props.rewardsData.adsData.adsEnabled
+      adsUIEnabled = this.props.rewardsData.adsData.adsUIEnabled
+    }
+
+    if (!adsUIEnabled) {
+      return null
     }
 
     return (
