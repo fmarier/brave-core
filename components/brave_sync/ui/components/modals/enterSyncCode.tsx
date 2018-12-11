@@ -54,6 +54,7 @@ interface Props {
 
   onUserNoticedError = () => {
     this.props.actions.resetSyncSetupError()
+    this.props.onClose()
   }
 
   onEnterPassphrase = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -99,6 +100,14 @@ interface Props {
              </AlertBox>
            : null
          }
+        {
+          syncData.error === 'ERR_SYNC_INIT_FAILED'
+          ? <AlertBox okString={getLocale('ok')} onClickOk={this.onUserNoticedError}>
+              <Title>{getLocale('errorSyncInitFailedTitle')}</Title>
+              <SubTitle>{getLocale('errorSyncInitFailedDescription')}</SubTitle>
+            </AlertBox>
+          : null
+        }
         {
           showAlert
           ? (
