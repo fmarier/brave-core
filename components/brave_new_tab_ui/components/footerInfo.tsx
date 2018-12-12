@@ -17,8 +17,7 @@ export default class FooterInfo extends React.Component<Props, {}> {
       <footer className='footerContainer'>
         <div className='copyrightNotice'>
           {
-            bgImage && bgImage.name
-            ? <div>
+            bgImage ? <div>
               <div className='copyrightCredits'>
                 <a className='copyrightOwner' href={bgImage.link} rel='noopener' target='_blank'> {bgImage.author}</a>
               </div>
