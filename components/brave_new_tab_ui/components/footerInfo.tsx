@@ -20,12 +20,8 @@ export default class FooterInfo extends React.Component<Props, {}> {
             bgImage && bgImage.name
             ? <div>
               <div className='copyrightCredits'>
-                <span className='photoBy'>{getLocale('photoBy')} </span>
-                <a className='copyrightOwner' href={bgImage.link} rel='noopener' target='_blank'>
-                  {bgImage.author}
-                </a>
+                <a className='copyrightOwner' href={bgImage.link} rel='noopener' target='_blank'> {bgImage.author}</a>
               </div>
-              <span className='photoName'>{bgImage.name}</span>
             </div>
             : null
           }
