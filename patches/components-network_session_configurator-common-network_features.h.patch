@@ -1,0 +1,16 @@
+diff --git a/components/network_session_configurator/common/network_features.h b/components/network_session_configurator/common/network_features.h
+index 4108b1a633f79608bf71863c803646f4d3d8b0ba..0ab8ef77fbb19298afaaab5379b53162084e771e 100644
+--- a/components/network_session_configurator/common/network_features.h
++++ b/components/network_session_configurator/common/network_features.h
+@@ -14,6 +14,11 @@ namespace features {
+ // (https://tools.ietf.org/id/draft-ietf-doh-dns-over-https-12.txt).
+ NETWORK_SESSION_CONFIGURATOR_EXPORT extern const base::Feature kDnsOverHttps;
+ 
++// DNS over HTTPS server endpoint choices
++NETWORK_SESSION_CONFIGURATOR_EXPORT extern const char kDnsOverHttpsChoiceDefault[], kDnsOverHttpsChoiceBogus[],
++   kDnsOverHttpsChoiceGoogle[], kDnsOverHttpsChoiceCloudflare[], kDnsOverHttpsChoiceQuad9[],
++   kDnsOverHttpsChoiceAdGuard[], kDnsOverHttpsChoiceCleanBrowsing[];
++
+ }  // namespace features
+ 
+ #endif  // COMPONENTS_NETWORK_SESSION_CONFIGURATOR_COMMON_NETWORK_FEATURES_H_

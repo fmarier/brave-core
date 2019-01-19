@@ -1,23 +1,32 @@
 diff --git a/chrome/browser/about_flags.cc b/chrome/browser/about_flags.cc
-index 0a84c6ac1cd00f304159fcc0eaea96198e27ac45..25076b3dc42aa5c17770d65b7773fe986448418e 100644
+index 0a84c6ac1cd00f304159fcc0eaea96198e27ac45..f2dbafe87bb6d96c2d51a16abb8c68947d499027 100644
 --- a/chrome/browser/about_flags.cc
 +++ b/chrome/browser/about_flags.cc
-@@ -260,14 +260,14 @@ const FeatureEntry::Choice kTouchTextSelectionStrategyChoices[] = {
- const FeatureEntry::Choice kTraceUploadURL[] = {
-     {flags_ui::kGenericExperimentChoiceDisabled, "", ""},
-     {flag_descriptions::kTraceUploadUrlChoiceOther, switches::kTraceUploadURL,
--     "https://performance-insights.appspot.com/upload?tags=flags,Other"},
-+     "https://no-thanks.invalid"},
-     {flag_descriptions::kTraceUploadUrlChoiceEmloading,
-      switches::kTraceUploadURL,
--     "https://performance-insights.appspot.com/upload?tags=flags,emloading"},
-+     "https://no-thanks.invalid"},
-     {flag_descriptions::kTraceUploadUrlChoiceQa, switches::kTraceUploadURL,
--     "https://performance-insights.appspot.com/upload?tags=flags,QA"},
-+     "https://no-thanks.invalid"},
-     {flag_descriptions::kTraceUploadUrlChoiceTesting, switches::kTraceUploadURL,
--     "https://performance-insights.appspot.com/upload?tags=flags,TestingTeam"}};
-+     "https://no-thanks.invalid"}};
+@@ -1254,6 +1254,16 @@ const FeatureEntry::FeatureVariation kOfflineIndicatorFeatureVariations[] = {
+      base::size(kBottomOfflineIndicatorEnabled), nullptr}};
+ #endif  // OS_ANDROID
  
- #if BUILDFLAG(ENABLE_NACL)
- const FeatureEntry::Choice kNaClDebugMaskChoices[] = {
++const FeatureEntry::Choice kDnsOverHttpsChoices[] = {
++    {features::kDnsOverHttpsChoiceDefault, "", ""},
++    {features::kDnsOverHttpsChoiceBogus, switches::kDnsOverHttpsServer, "https://192.168.1.250/bogus"},
++    {features::kDnsOverHttpsChoiceGoogle, switches::kDnsOverHttpsServer, "https://dns.google.com/experimental"},
++    {features::kDnsOverHttpsChoiceCloudflare, switches::kDnsOverHttpsServer, "https://1.1.1.1/dns-query"},
++    {features::kDnsOverHttpsChoiceQuad9, switches::kDnsOverHttpsServer, "https://9.9.9.9/dns-query"},
++    {features::kDnsOverHttpsChoiceAdGuard, switches::kDnsOverHttpsServer, "https://dns.adguard.com/dns-query"},
++    {features::kDnsOverHttpsChoiceCleanBrowsing, switches::kDnsOverHttpsServer, "https://doh.cleanbrowsing.org/doh/security-filter"}
++};
++
+ // RECORDING USER METRICS FOR FLAGS:
+ // -----------------------------------------------------------------------------
+ // The first line of the entry is the internal name.
+@@ -4477,6 +4487,10 @@ const FeatureEntry kFeatureEntries[] = {
+      FEATURE_VALUE_TYPE(
+          autofill::features::kAutofillAlwaysShowServerCardsInSyncTransport)},
+ #endif  // defined(OS_WIN) || defined(OS_MACOSX) || defined(OS_LINUX)
++
++    {"enable-dns-over-https", flag_descriptions::kDnsOverHttpsName,
++     flag_descriptions::kDnsOverHttpsDescription, kOsAll,
++     MULTI_VALUE_TYPE(kDnsOverHttpsChoices)},
+ };
+ 
+ class FlagsStateSingleton {

@@ -1,0 +1,15 @@
+diff --git a/chrome/browser/flag_descriptions.cc b/chrome/browser/flag_descriptions.cc
+index 62637e09259f9389d8594e4f79dc5dee8b7334e5..c81253387eb35717913d2d9b0c258f0d6413bfd2 100644
+--- a/chrome/browser/flag_descriptions.cc
++++ b/chrome/browser/flag_descriptions.cc
+@@ -225,6 +225,10 @@ const char kCloudPrinterHandlerDescription[] =
+     "print server, instead of the cloud print interface in the Print "
+     "Preview WebUI.";
+ 
++const char kDnsOverHttpsName[] = "DNS over HTTPS";
++const char kDnsOverHttpsDescription[] =
++  "Enables DNS-over-HTTPS (experimental).";
++
+ const char kFCMInvalidationsName[] =
+     "Enable invalidations delivery via new FCM based protocol";
+ const char kFCMInvalidationsDescription[] =

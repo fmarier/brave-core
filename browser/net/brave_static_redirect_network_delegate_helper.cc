@@ -58,6 +58,14 @@ int OnBeforeURLRequest_StaticRedirectWork(
     URLPattern(URLPattern::SCHEME_HTTPS, "https://safebrowsing.brave.com/v4/*"),
     URLPattern(URLPattern::SCHEME_HTTPS, "https://ssl.gstatic.com/safebrowsing/*"),
 
+    // DNS over HTTPS
+    URLPattern(URLPattern::SCHEME_HTTPS, "https://192.168.1.250/bogus"),
+    URLPattern(URLPattern::SCHEME_HTTPS, "https://dns.google.com/experimental"),
+    URLPattern(URLPattern::SCHEME_HTTPS, "https://1.1.1.1/dns-query"),
+    URLPattern(URLPattern::SCHEME_HTTPS, "https://9.9.9.9/dns-query"),
+    URLPattern(URLPattern::SCHEME_HTTPS, "https://dns.adguard.com/dns-query"),
+    URLPattern(URLPattern::SCHEME_HTTPS, "https://doh.cleanbrowsing.org/doh/security-filter"),
+
     // Will be removed when https://github.com/brave/brave-browser/issues/663 is fixed
     URLPattern(URLPattern::SCHEME_HTTPS, "https://www.gstatic.com/*"),
   });

@@ -1,0 +1,11 @@
+diff --git a/components/network_session_configurator/common/network_switch_list.h b/components/network_session_configurator/common/network_switch_list.h
+index ff5ea22383d6baa04101e987842583af29d46c94..0c8296af4e8467d8c55f43637ab3bb2bf9542d21 100644
+--- a/components/network_session_configurator/common/network_switch_list.h
++++ b/components/network_session_configurator/common/network_switch_list.h
+@@ -68,3 +68,6 @@ NETWORK_SWITCH(kHostRules, "host-rules")
+ // Uses experimental simple cache backend if possible when set to "on", and
+ // blockfile backend when set to "off".
+ NETWORK_SWITCH(kUseSimpleCacheBackend, "use-simple-cache-backend")
++
++// Specifies a DNS-over-HTTPS server endpoint
++NETWORK_SWITCH(kDnsOverHttpsServer, "dns-over-https-server")

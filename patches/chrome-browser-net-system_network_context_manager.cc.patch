@@ -1,0 +1,34 @@
+diff --git a/chrome/browser/net/system_network_context_manager.cc b/chrome/browser/net/system_network_context_manager.cc
+index 9ff382f1d97cefe3c2e0cfa5860133db8f576f3c..6be33f325b60126aed7ed8fa82a359b059dcb8fc 100644
+--- a/chrome/browser/net/system_network_context_manager.cc
++++ b/chrome/browser/net/system_network_context_manager.cc
+@@ -33,6 +33,7 @@
+ #include "components/certificate_transparency/ct_known_logs.h"
+ #include "components/net_log/net_export_file_writer.h"
+ #include "components/network_session_configurator/common/network_features.h"
++#include "components/network_session_configurator/common/network_switches.h"
+ #include "components/os_crypt/os_crypt.h"
+ #include "components/policy/core/common/policy_namespace.h"
+ #include "components/policy/core/common/policy_service.h"
+@@ -395,15 +396,12 @@ SystemNetworkContextManager::SystemNetworkContextManager(
+                                     base::Value(ShouldEnableAsyncDns()));
+   base::ListValue default_doh_servers;
+   base::ListValue default_doh_server_methods;
+-  if (base::FeatureList::IsEnabled(features::kDnsOverHttps)) {
+-    std::string server(variations::GetVariationParamValueByFeature(
+-        features::kDnsOverHttps, "server"));
+-    std::string method(variations::GetVariationParamValueByFeature(
+-        features::kDnsOverHttps, "method"));
+-    if (!server.empty()) {
+-      default_doh_servers.AppendString(server);
+-      default_doh_server_methods.AppendString(method);
+-    }
++  std::string server =
++      base::CommandLine::ForCurrentProcess()->GetSwitchValueASCII(
++      switches::kDnsOverHttpsServer);
++  if (!server.empty()) {
++    default_doh_servers.AppendString(server);
++    default_doh_server_methods.AppendString("POST");
+   }
+   local_state_->SetDefaultPrefValue(prefs::kDnsOverHttpsServers,
+                                     std::move(default_doh_servers));

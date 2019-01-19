@@ -1,0 +1,19 @@
+diff --git a/components/network_session_configurator/common/network_features.cc b/components/network_session_configurator/common/network_features.cc
+index c4dd7346139b4df413dd1f40a4f5805ebc274d52..9c24ee82f6f9a0f1b8f9f3a99829ef5201ed7847 100644
+--- a/components/network_session_configurator/common/network_features.cc
++++ b/components/network_session_configurator/common/network_features.cc
+@@ -8,7 +8,12 @@
+ 
+ namespace features {
+ 
+-const base::Feature kDnsOverHttps{"dns-over-https",
+-                                  base::FEATURE_DISABLED_BY_DEFAULT};
++const char kDnsOverHttpsChoiceDefault[] = "Disabled",
++                 kDnsOverHttpsChoiceBogus[] = "Bogus",
++                 kDnsOverHttpsChoiceGoogle[] = "Google",
++                 kDnsOverHttpsChoiceCloudflare[] = "Cloudflare (recommended)",
++                 kDnsOverHttpsChoiceQuad9[] = "Quad9",
++                 kDnsOverHttpsChoiceAdGuard[] = "AdGuard",
++                 kDnsOverHttpsChoiceCleanBrowsing[] = "CleanBrowsing";
+ 
+ }  // namespace features

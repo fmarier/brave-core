@@ -1,0 +1,14 @@
+diff --git a/chrome/browser/flag_descriptions.h b/chrome/browser/flag_descriptions.h
+index 5dac660bb48c1d1a2eb86e69440322902dd40fc3..b95691696f10622e521fdca4ea8c78662a1416ed 100644
+--- a/chrome/browser/flag_descriptions.h
++++ b/chrome/browser/flag_descriptions.h
+@@ -159,6 +159,9 @@ extern const char kCloudImportDescription[];
+ extern const char kCloudPrinterHandlerName[];
+ extern const char kCloudPrinterHandlerDescription[];
+ 
++extern const char kDnsOverHttpsName[];
++extern const char kDnsOverHttpsDescription[];
++
+ extern const char kExperimentalAccessibilityFeaturesName[];
+ extern const char kExperimentalAccessibilityFeaturesDescription[];
+ 
