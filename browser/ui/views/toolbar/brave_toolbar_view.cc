@@ -207,7 +207,7 @@ void BraveToolbarView::Layout() {
   //                then Layout() might not be called and the back button
   //                will be slightly the wrong size.  We should force a
   //                Layout() in this case.
-  //                http://crbug.com/5540
+  //                https://crbug.com/5540
   const bool maximized =
       browser_->window() && browser_->window()->IsMaximized();
   // The padding at either end of the toolbar.

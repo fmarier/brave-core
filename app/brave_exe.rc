@@ -31,7 +31,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 // The application icon should: have the lowest ID, be placed first, and its
 // resource name should be alphabetically less than the name of any other icon
-// resource (http://msdn.microsoft.com/en-us/library/ms997538.aspx).
+// resource (https://docs.microsoft.com/en-us/previous-versions/ms997538(v=msdn.10)).
 // Note: chrome/installer/util/shell_util.cc depends on the order and number of
 // icons.  To avoid breaking existing shortcuts, add new icons at the end
 // (following the ordering described above).

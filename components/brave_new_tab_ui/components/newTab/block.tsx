@@ -30,7 +30,7 @@ const blockSource: DragSourceSpec<Props> = {
   /**
    * Required. Called when the dragging starts
    * It's the only data available to the drop targets about the drag source
-   * @see http://gaearon.github.io/react-dnd/docs-drag-source.html#specification-methods
+   * @see https://react-dnd.github.io/react-dnd/docs/api/drag-source#specification-methods
    */
   beginDrag (props: Props) {
     return {
@@ -49,7 +49,7 @@ const blockSource: DragSourceSpec<Props> = {
 const blockTarget: DropTargetSpec<Props> = {
   /**
    * Optional. Called when an item is hovered over the component
-   * @see http://gaearon.github.io/react-dnd/docs-drop-target.html#specification-methods
+   * @see https://react-dnd.github.io/react-dnd/docs/api/drop-target#specification-methods
    */
   hover (props: Props, monitor: DropTargetMonitor) {
     const item: Props = monitor.getItem() as Props
@@ -69,7 +69,7 @@ const blockTarget: DropTargetSpec<Props> = {
  * nodes to the DnD backend, and a monitor to query information about the drag state.
  * It should return a plain object of props to inject into your component.
  *
- * @see http://gaearon.github.io/react-dnd/docs-drop-target.html#the-collecting-function
+ * @see https://react-dnd.github.io/react-dnd/docs/api/drop-target#the-collecting-function
  */
 
 const sourceCollect: DragSourceCollector = (
@@ -161,7 +161,7 @@ class Block extends React.Component<Props, {}> {
  * Only the drop targets registered for the same type will
  * react to the items produced by this drag source.
  *
- * @see http://gaearon.github.io/react-dnd/docs-drag-source.html
+ * @see https://react-dnd.github.io/react-dnd/docs/api/drag-source
  */
 const source = DragSource<Props>(Types.BLOCK, blockSource, sourceCollect)(
   Block
@@ -172,7 +172,7 @@ const source = DragSource<Props>(Types.BLOCK, blockSource, sourceCollect)(
  * React to the compatible items being dragged, hovered, or dropped on it
  * Works with the same parameters as DragSource() above.
  *
- * @see http://gaearon.github.io/react-dnd/docs-drop-target.html
+ * @see https://react-dnd.github.io/react-dnd/docs/api/drop-target
  */
 export default DropTarget<Props>(Types.BLOCK, blockTarget, targetCollect)(
   source

@@ -44,7 +44,7 @@ export default class Stats extends React.Component<Props, {}> {
       counter = Math.ceil(estimatedMillisecondsSaved / 1000 / 60)
       id = counter === 1 ? 'minute' : 'minutes'
     } else if (hours) {
-      // Refer to http://stackoverflow.com/a/12830454/2950032 for the detailed reasoning behind the + after
+      // Refer to https://stackoverflow.com/a/12830454/2950032 for the detailed reasoning behind the + after
       // toFixed is applied. In a nutshell, + is used to discard unnecessary trailing 0s after calling toFixed
       counter = +((estimatedMillisecondsSaved / 1000 / 60 / 60).toFixed(1))
       id = counter === 1 ? 'hour' : 'hours'

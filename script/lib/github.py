@@ -202,7 +202,7 @@ def create_pull_request(token, repo_name, title, body, branch_src, branch_dst,
         'maintainer_can_modify': True
     }
     # create the pull request
-    # for more info see: http://developer.github.com/v3/pulls
+    # for more info see: https://developer.github.com/v3/pulls
     if dryrun:
         print('[INFO] would call `repo.pulls.post(' + str(post_data) + ')`')
         if open_in_browser:
