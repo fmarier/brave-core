@@ -567,7 +567,7 @@ are declared in tools/grit/grit_rule.gni.
             &amp;Search <ph name="SEARCH_ENGINE">$1<ex>Brave</ex></ph> for image
           </message>
           <message name="IDS_CONTENT_CONTEXT_GOTOURL" desc="The name of the Go to 'url' command in the content area context menu">
-            &amp;Go to <ph name="URL">$1<ex>http://www.google.com/</ex></ph>
+            &amp;Go to <ph name="URL">$1<ex>https://www.google.com/</ex></ph>
           </message>
           <message name="IDS_CONTENT_CONTEXT_GENERATEPASSWORD" desc="The name of the Generate Password command in the content area context menu">
             Suggest password...
@@ -800,7 +800,7 @@ are declared in tools/grit/grit_rule.gni.
             &amp;Search <ph name="SEARCH_ENGINE">$1<ex>Brave</ex></ph> for Image
           </message>
           <message name="IDS_CONTENT_CONTEXT_GOTOURL" desc="In Title Case: The name of the Go to url for 'string' command in the content area context menu">
-            &amp;Go to <ph name="URL">$1<ex>http://www.google.com/</ex></ph>
+            &amp;Go to <ph name="URL">$1<ex>https://www.google.com/</ex></ph>
           </message>
           <message name="IDS_CONTENT_CONTEXT_GENERATEPASSWORD" desc="In Title Case: The name of the Generate Password command in the content area context menu">
             Suggest Password...
@@ -3021,10 +3021,10 @@ are declared in tools/grit/grit_rule.gni.
           Private Tab: <ph name="TAB_NAME">$1<ex>Brave</ex></ph>
         </message>
         <message name="IDS_TASK_MANAGER_BACKGROUND_APP_PREFIX" desc="The prefix for a Task Manager background app task representing a BackgroundContents">
-          Background App: <ph name="BACKGROUND_APP_URL">$1<ex>http://www.google.com</ex></ph>
+          Background App: <ph name="BACKGROUND_APP_URL">$1<ex>https://www.google.com</ex></ph>
         </message>
         <message name="IDS_TASK_MANAGER_BACKGROUND_PREFIX" desc="The prefix for a Task Manager background page row">
-          Background Page: <ph name="BACKGROUND_PAGE_URL">$1<ex>http://www.google.com</ex></ph>
+          Background Page: <ph name="BACKGROUND_PAGE_URL">$1<ex>https://www.google.com</ex></ph>
         </message>
         <message name="IDS_TASK_MANAGER_PLUGIN_PREFIX" desc="The prefix for a Task Manager plugin row">
           Plugin: <ph name="PLUGIN_NAME">$1<ex>Unknown Plugin</ex></ph>
@@ -3033,10 +3033,10 @@ are declared in tools/grit/grit_rule.gni.
           Plugin Broker: <ph name="PLUGIN_NAME">$1<ex>Unknown Plugin</ex></ph>
         </message>
         <message name="IDS_TASK_MANAGER_PRERENDER_PREFIX" desc="The prefix for a Task Manager prerender row">
-          Prerender: <ph name="PRERENDER_CONTENTS_NAME">$1<ex>http://www.google.com</ex></ph>
+          Prerender: <ph name="PRERENDER_CONTENTS_NAME">$1<ex>https://www.google.com</ex></ph>
         </message>
         <message name="IDS_TASK_MANAGER_RENDERER_PREFIX" desc="The prefix for a Task Manager renderer row, only is visible when no other task claims that process">
-          Renderer: <ph name="RENDERER_URL">$1<ex>http://www.google.com</ex></ph>
+          Renderer: <ph name="RENDERER_URL">$1<ex>https://www.google.com</ex></ph>
         </message>
         <message name="IDS_TASK_MANAGER_UNKNOWN_PLUGIN_NAME" desc="The prefix for a Task Manager plugin row">
           Unknown plugin
@@ -3276,10 +3276,10 @@ are declared in tools/grit/grit_rule.gni.
 
       <!-- Extension/App install dialog strings -->
       <message name="IDS_EXTENSION_PROMPT_APP_CONNECT_FROM_INCOGNITO" desc="Shown when a website tries to connect to an app from private mode, prompting the user to allow or deny the request.">
-        <ph name="ORIGIN">$1<ex>http://www.google.com</ex></ph> wants to communicate with the app "<ph name="EXTENSION_NAME">$2<ex>Gmail</ex></ph>"
+        <ph name="ORIGIN">$1<ex>https://www.google.com</ex></ph> wants to communicate with the app "<ph name="EXTENSION_NAME">$2<ex>Gmail</ex></ph>"
       </message>
       <message name="IDS_EXTENSION_PROMPT_EXTENSION_CONNECT_FROM_INCOGNITO" desc="Shown when a website tries to connect to an extension from private mode, prompting the user to allow or deny the request.">
-        <ph name="ORIGIN">$1<ex>http://www.google.com</ex></ph> wants to communicate with the extension "<ph name="EXTENSION_NAME">$2<ex>Gmail Checker</ex></ph>"
+        <ph name="ORIGIN">$1<ex>https://www.google.com</ex></ph> wants to communicate with the extension "<ph name="EXTENSION_NAME">$2<ex>Gmail Checker</ex></ph>"
       </message>
       <message name="IDS_EXTENSION_PROMPT_WILL_HAVE_ACCESS_TO" desc="Second line in the content area of the extension or app installation prompt. Note that the exact wording is important. This should mean that the extension or app _can_ access the listed privileges, but not necessarily that it will or needs to.">
         It can:
