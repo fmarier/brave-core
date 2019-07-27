@@ -1,0 +1,20 @@
+diff --git a/net/http/http_server_properties_impl.cc b/net/http/http_server_properties_impl.cc
+index f18530db1060bfbd09c273f695714305ea9aa90e..a24ed108a8bbd734129d155d290b6aabfcaa14b0 100644
+--- a/net/http/http_server_properties_impl.cc
++++ b/net/http/http_server_properties_impl.cc
+@@ -374,6 +374,7 @@ bool HttpServerPropertiesImpl::SetHttp2AlternativeService(
+     base::Time expiration) {
+   DCHECK_EQ(alternative_service.protocol, kProtoHTTP2);
+ 
++  BRAVE_RESTRICT_ALTERNATIVE_SERVICES_EXPIRATION
+   return SetAlternativeServices(
+       origin,
+       AlternativeServiceInfoVector(
+@@ -388,6 +389,7 @@ bool HttpServerPropertiesImpl::SetQuicAlternativeService(
+     const quic::ParsedQuicVersionVector& advertised_versions) {
+   DCHECK(alternative_service.protocol == kProtoQUIC);
+ 
++  BRAVE_RESTRICT_ALTERNATIVE_SERVICES_EXPIRATION
+   return SetAlternativeServices(
+       origin, AlternativeServiceInfoVector(
+                   /*size=*/1,
