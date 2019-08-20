@@ -50,12 +50,56 @@ bool ApplyPotentialReferrerBlock(std::shared_ptr<BraveRequestInfo> ctx) {
   return false;
 }
 
+bool ApplyPotentialQueryStringFilter(std::shared_ptr<BraveRequestInfo> ctx) {
+  DCHECK_CURRENTLY_ON(BrowserThread::IO);
+  if (ctx->request_url.has_query()) {
+    bool modified = false;
+    std::vector<std::string> new_query_parts;
+
+    const std::string query = ctx->request_url.query();
+    url::Component cursor(0, query.size());
+    url::Component key_range, value_range;
+    while (url::ExtractQueryKeyValue(query.data(), &cursor, &key_range,
+                                     &value_range)) {
+      const base::StringPiece key(query.data() + key_range.begin,
+                                  key_range.len);
+      const base::StringPiece value(query.data() + value_range.begin,
+                                    value_range.len);
+      if (!value.empty() && (key == "fbclid" || key == "gclid" ||
+                             key == "msclkid" || key == "mc_eid")) {
+        modified = true;  // We'll have to rewrite the query string.
+      } else if (!key.empty() || !value.empty()) {
+        // Add the current key=value to the new query string.
+        new_query_parts.push_back(base::StringPrintf("%s=%s",
+            key.as_string().c_str(), value.as_string().c_str()));
+      }
+    }
+
+    if (modified) {
+      url::Replacements<char> replacements;
+      if (new_query_parts.empty()) {
+        replacements.ClearQuery();
+      } else {
+        std::string new_query_string = base::JoinString(new_query_parts, "&");
+        url::Component new_query(0, new_query_string.size());
+        replacements.SetQuery(new_query_string.c_str(), new_query);
+      }
+      ctx->new_url_spec =
+          ctx->request_url.ReplaceComponents(replacements).spec();
+      return true;
+    }
+  }
+
+  return false;
+}
+
 }  // namespace
 
 int OnBeforeURLRequest_SiteHacksWork(
     const ResponseCallback& next_callback,
     std::shared_ptr<BraveRequestInfo> ctx) {
   ApplyPotentialReferrerBlock(ctx);
+  ApplyPotentialQueryStringFilter(ctx);
   return net::OK;
 }
 
