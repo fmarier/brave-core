@@ -29,6 +29,10 @@ namespace brave {
 
 namespace {
 
+const std::vector<std::string> query_string_trackers = {
+  "fbclid", "gclid", "msclkid", "mc_eid"
+};
+
 bool ApplyPotentialReferrerBlock(std::shared_ptr<BraveRequestInfo> ctx) {
   DCHECK_CURRENTLY_ON(BrowserThread::IO);
   GURL target_origin = ctx->request_url.GetOrigin();
@@ -52,42 +56,77 @@ bool ApplyPotentialReferrerBlock(std::shared_ptr<BraveRequestInfo> ctx) {
 
 bool ApplyPotentialQueryStringFilter(std::shared_ptr<BraveRequestInfo> ctx) {
   DCHECK_CURRENTLY_ON(BrowserThread::IO);
-  if (ctx->request_url.has_query()) {
-    bool modified = false;
-    std::vector<std::string> new_query_parts;
+  if (!ctx->request_url.has_query()) {
+    return false;
+  }
 
-    const std::string query = ctx->request_url.query();
-    url::Component cursor(0, query.size());
-    url::Component key_range, value_range;
-    while (url::ExtractQueryKeyValue(query.data(), &cursor, &key_range,
-                                     &value_range)) {
-      const base::StringPiece key(query.data() + key_range.begin,
-                                  key_range.len);
-      const base::StringPiece value(query.data() + value_range.begin,
-                                    value_range.len);
-      if (!value.empty() && (key == "fbclid" || key == "gclid" ||
-                             key == "msclkid" || key == "mc_eid")) {
-        modified = true;  // We'll have to rewrite the query string.
-      } else if (!key.empty() || !value.empty()) {
-        // Add the current key=value to the new query string.
-        new_query_parts.push_back(base::StringPrintf("%s=%s",
-            key.as_string().c_str(), value.as_string().c_str()));
-      }
+  std::string new_query = ctx->request_url.query();
+
+  bool modified = false;
+  for (auto tracker : query_string_trackers) {
+    size_t key_size, key_start;
+
+    // Look for the tracker anywhere in the query string
+    // (e.g. ?...fbclid=1234...).
+    {
+      const std::string key = tracker + "=";
+      key_size = key.size();
+      key_start = new_query.find(key, 0);
+    }
+    if (key_start == std::string::npos) {
+      continue;
     }
 
-    if (modified) {
-      url::Replacements<char> replacements;
-      if (new_query_parts.empty()) {
-        replacements.ClearQuery();
-      } else {
-        std::string new_query_string = base::JoinString(new_query_parts, "&");
-        url::Component new_query(0, new_query_string.size());
-        replacements.SetQuery(new_query_string.c_str(), new_query);
+    // Check to see if the tracker is preceded by a '&'
+    // (e.g. ?...&fbclid=1234...).
+    if (key_start != 0) {
+      if (new_query[--key_start] != '&') {
+        // Tracker is substring of another key (e.g. ?...&abc-fbclid=1234...).
+        continue;
       }
-      ctx->new_url_spec =
-          ctx->request_url.ReplaceComponents(replacements).spec();
-      return true;
+      key_size++;
     }
+
+    {
+      // Find the size of the tracking parameter value.
+      const size_t value_start = key_start + key_size;
+      size_t value_end = new_query.find("&", key_start + 1);
+      if (value_end == std::string::npos) {
+        value_end = new_query.size();  // Tracker is the last query parameter.
+      }
+      if (value_end <= value_start) {
+        DCHECK(value_end == value_start);
+        continue;  // Empty value, no need to remove tracker.
+      }
+
+      // Remove tracking parameter and its value from the string.
+      modified = true;
+      new_query.erase(key_start, value_end - key_start);
+    }
+
+    // Remove the trailing '&' if we removed the first parameter
+    // (e.g. ?fbclid=1234&...).
+    if (!new_query.empty() && key_start == 0) {
+      DCHECK(new_query[0] == '&');
+      new_query.erase(key_start, 1);
+    }
+
+    if (new_query.empty()) {
+      break;  // Nothing left to filter.
+    }
+  }
+
+  if (modified) {
+    url::Replacements<char> replacements;
+    if (new_query.empty()) {
+      replacements.ClearQuery();
+    } else {
+      replacements.SetQuery(new_query.c_str(),
+                            url::Component(0, new_query.size()));
+    }
+    ctx->new_url_spec =
+      ctx->request_url.ReplaceComponents(replacements).spec();
+    return true;
   }
 
   return false;

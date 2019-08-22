@@ -281,6 +281,9 @@ TEST_F(BraveSiteHacksNetworkDelegateHelperTest, QueryStringUntouched) {
     GURL("https://example.com/?foo=1&fbcid=no&gcid=no&mc_cid=no&bar=&#frag"),
     GURL("https://example.com/?fbclid=&gclid&=mc_eid&msclkid="),
     GURL("https://example.com/?value=fbclid=1&not-gclid=2&foo+mc_eid=3"),
+    GURL("https://example.com/?+fbclid=1"),
+    GURL("https://example.com/?%20fbclid=1"),
+    GURL("https://example.com/#fbclid=1"),
   });
   std::for_each(urls.begin(), urls.end(), [this](GURL url){
     net::TestDelegate test_delegate;
@@ -306,24 +309,26 @@ TEST_F(BraveSiteHacksNetworkDelegateHelperTest, QueryStringFiltered) {
   std::vector<std::pair<GURL, GURL> > urls({
     // { original url, expected url after filtering }
     { GURL("https://example.com/?fbclid=1234"), GURL("https://example.com/") },
+    { GURL("https://example.com/?fbclid=1234&"), GURL("https://example.com/") },
+    { GURL("https://example.com/?&fbclid=1234"), GURL("https://example.com/") },
     { GURL("https://example.com/?gclid=1234"), GURL("https://example.com/") },
     { GURL("https://example.com/?fbclid=0&gclid=1&msclkid=a&mc_eid=a1"),
       GURL("https://example.com/") },
+    { GURL("https://example.com/?fbclid=&foo=1&bar=2&gclid=abc"),
+      GURL("https://example.com/?fbclid=&foo=1&bar=2") },
     { GURL("https://example.com/?fbclid=&foo=1&gclid=1234&bar=2"),
       GURL("https://example.com/?fbclid=&foo=1&bar=2") },
     { GURL("http://u:p@example.com/path/file.html?foo=1&fbclid=abcd#fragment"),
       GURL("http://u:p@example.com/path/file.html?foo=1#fragment") },
-    // Obscure edge cases that break most parsers
-    // { GURL("https://example.com/?fbclid&foo&&gclid=2&bar=&%20"),
-    //   GURL("https://example.com/?fbclid&foo&&bar=&%20") },
-    // { GURL("https://example.com/?fbclid=1&1==2&=msclkid&foo=bar&&a=b=c&"),
-    //   GURL("https://example.com/?1==2&=msclkid&foo=bar&&a=b=c&") },
-    // { GURL("https://example.com/?fbclid;foo=1;glcid=yes"),
-    //   GURL("https://example.com/?fbclid;foo=1;") },
-    // { GURL("https://example.com/?fbclid=1&=2&?foo=yes&bar=2+"),
-    //   GURL("https://example.com/?=2&?foo=yes&bar=2+") },
-    // { GURL("https://example.com/?fbclid=1&a+b+c=some%20thing&1%202=3+4"),
-    //   GURL("https://example.com/?a+b+c=some%20thing&1%202=3+4") },
+    // Obscure edge cases that break most parsers:
+    { GURL("https://example.com/?fbclid&foo&&gclid=2&bar=&%20"),
+      GURL("https://example.com/?fbclid&foo&&bar=&%20") },
+    { GURL("https://example.com/?fbclid=1&1==2&=msclkid&foo=bar&&a=b=c&"),
+      GURL("https://example.com/?1==2&=msclkid&foo=bar&&a=b=c&") },
+    { GURL("https://example.com/?fbclid=1&=2&?foo=yes&bar=2+"),
+      GURL("https://example.com/?=2&?foo=yes&bar=2+") },
+    { GURL("https://example.com/?fbclid=1&a+b+c=some%20thing&1%202=3+4"),
+      GURL("https://example.com/?a+b+c=some%20thing&1%202=3+4") },
   });
   std::for_each(urls.begin(), urls.end(), [this](std::pair<GURL, GURL> url){
     net::TestDelegate test_delegate;
