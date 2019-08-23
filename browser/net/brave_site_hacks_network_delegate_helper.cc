@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#include "base/lazy_instance.h"
+#include "base/no_destructor.h"
 #include "base/sequenced_task_runner.h"
 #include "base/strings/string_util.h"
 #include "brave/common/network_constants.h"
@@ -22,6 +24,7 @@
 #include "content/public/common/referrer.h"
 #include "extensions/common/url_pattern.h"
 #include "net/url_request/url_request.h"
+#include "third_party/re2/src/re2/re2.h"
 
 using content::BrowserThread;
 using content::Referrer;
@@ -30,11 +33,41 @@ namespace brave {
 
 namespace {
 
-const std::vector<const std::string>& GetQueryStringTrackers() {
-  static const base::NoDestructor<std::vector<const std::string>> trackers(
-      {"fbclid", "gclid", "msclkid", "mc_eid"});
+const std::string& GetQueryStringTrackers() {
+  static const base::NoDestructor<std::string> trackers(base::JoinString(
+      std::vector<std::string>({"fbclid", "gclid", "msclkid", "mc_eid"}), "|"));
   return *trackers;
 }
+
+// From src/components/autofill/content/renderer/page_passwords_analyser.cc
+// and password_form_conversion_utils.cc:
+#define DECLARE_LAZY_MATCHER(NAME, PATTERN)                                   \
+  struct LabelPatternLazyInstanceTraits_##NAME                                \
+      : public base::internal::DestructorAtExitLazyInstanceTraits<re2::RE2> { \
+    static re2::RE2* New(void* instance) {                                    \
+      re2::RE2::Options options;                                              \
+      options.set_case_sensitive(false);                                      \
+      re2::RE2* matcher = new (instance) re2::RE2(PATTERN, options);          \
+      DCHECK(matcher->ok());                                                  \
+      return matcher;                                                         \
+    }                                                                         \
+  };                                                                          \
+  base::LazyInstance<re2::RE2, LabelPatternLazyInstanceTraits_##NAME> NAME =  \
+      LAZY_INSTANCE_INITIALIZER
+
+// e.g. "?fbclid=1234"
+DECLARE_LAZY_MATCHER(tracker_only_matcher,
+                     "^(" + GetQueryStringTrackers() + ")=[^&]+$");
+
+// e.g. "?fbclid=1234&foo=1"
+DECLARE_LAZY_MATCHER(tracker_first_matcher,
+                     "^(" + GetQueryStringTrackers() + ")=[^&]+&");
+
+// e.g. "?foo=1&fbclid=1234" or "?foo=1&fbclid=1234&bar=2"
+DECLARE_LAZY_MATCHER(tracker_appended_matcher,
+                     "&(" + GetQueryStringTrackers() + ")=[^&]+");
+
+#undef DECLARE_LAZY_MATCHER
 
 bool ApplyPotentialReferrerBlock(std::shared_ptr<BraveRequestInfo> ctx) {
   DCHECK_CURRENTLY_ON(BrowserThread::IO);
@@ -60,63 +93,12 @@ bool ApplyPotentialReferrerBlock(std::shared_ptr<BraveRequestInfo> ctx) {
 void ApplyPotentialQueryStringFilter(const GURL& request_url,
                                      std::string* new_url_spec) {
   std::string new_query = request_url.query();
+  int replacement_count =
+      re2::RE2::GlobalReplace(&new_query, tracker_appended_matcher.Get(), "") +
+      re2::RE2::GlobalReplace(&new_query, tracker_first_matcher.Get(), "") +
+      re2::RE2::GlobalReplace(&new_query, tracker_only_matcher.Get(), "");
 
-  bool modified = false;
-  for (auto tracker : GetQueryStringTrackers()) {
-    size_t key_size = 0;
-    size_t key_start = std::string::npos;
-
-    // Look for the tracker anywhere in the query string
-    // (e.g. ?...fbclid=1234...).
-    {
-      const std::string key = tracker + "=";
-      key_size = key.size();
-      key_start = new_query.find(key, 0);
-    }
-    if (key_start == std::string::npos) {
-      continue;
-    }
-
-    // Check to see if the tracker is preceded by a '&'
-    // (e.g. ?...&fbclid=1234...).
-    if (key_start != 0) {
-      if (new_query[--key_start] != '&') {
-        // Tracker is substring of another key (e.g. ?...&abc-fbclid=1234...).
-        continue;
-      }
-      key_size++;
-    }
-
-    {
-      // Find the size of the tracking parameter value.
-      const size_t value_start = key_start + key_size;
-      size_t value_end = new_query.find("&", key_start + 1);
-      if (value_end == std::string::npos) {
-        value_end = new_query.size();  // Tracker is the last query parameter.
-      }
-      if (value_end <= value_start) {
-        DCHECK_EQ(value_end, value_start);
-        continue;  // Empty value, no need to remove tracker.
-      }
-
-      // Remove tracking parameter and its value from the string.
-      modified = true;
-      new_query.erase(key_start, value_end - key_start);
-    }
-
-    // Remove the trailing '&' if we removed the first parameter
-    // (e.g. ?fbclid=1234&...).
-    if (!new_query.empty() && key_start == 0) {
-      DCHECK_EQ(new_query[0], '&');
-      new_query.erase(key_start, 1);
-    }
-
-    if (new_query.empty()) {
-      break;  // Nothing left to filter.
-    }
-  }
-
-  if (modified) {
+  if (replacement_count > 0) {
     url::Replacements<char> replacements;
     if (new_query.empty()) {
       replacements.ClearQuery();
