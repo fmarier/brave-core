@@ -269,85 +269,84 @@ TEST_F(BraveSiteHacksNetworkDelegateHelperTest,
 }
 
 TEST_F(BraveSiteHacksNetworkDelegateHelperTest, QueryStringUntouched) {
-  std::vector<GURL> urls({
-    GURL("https://example.com/"),
-    GURL("https://example.com/?"),
-    GURL("https://example.com/?+%20"),
-    GURL("https://user:pass@example.com/path/file.html?foo=1#fragment"),
-    GURL("http://user:pass@example.com/path/file.html?foo=1&bar=2#fragment"),
-    GURL("https://example.com/?file=https%3A%2F%2Fexample.com%2Ftest.pdf"),
-    GURL("https://example.com/?title=1+2&caption=1%202"),
-    GURL("https://example.com/?foo=1&&bar=2#fragment"),
-    GURL("https://example.com/?foo&bar=&#fragment"),
-    GURL("https://example.com/?foo=1&fbcid=no&gcid=no&mc_cid=no&bar=&#frag"),
-    GURL("https://example.com/?fbclid=&gclid&=mc_eid&msclkid="),
-    GURL("https://example.com/?value=fbclid=1&not-gclid=2&foo+mc_eid=3"),
-    GURL("https://example.com/?+fbclid=1"),
-    GURL("https://example.com/?%20fbclid=1"),
-    GURL("https://example.com/#fbclid=1"),
+  const std::vector<const std::string> urls({
+      "https://example.com/",
+      "https://example.com/?",
+      "https://example.com/?+%20",
+      "https://user:pass@example.com/path/file.html?foo=1#fragment",
+      "http://user:pass@example.com/path/file.html?foo=1&bar=2#fragment",
+      "https://example.com/?file=https%3A%2F%2Fexample.com%2Ftest.pdf",
+      "https://example.com/?title=1+2&caption=1%202",
+      "https://example.com/?foo=1&&bar=2#fragment",
+      "https://example.com/?foo&bar=&#fragment",
+      "https://example.com/?foo=1&fbcid=no&gcid=no&mc_cid=no&bar=&#frag",
+      "https://example.com/?fbclid=&gclid&=mc_eid&msclkid=",
+      "https://example.com/?value=fbclid=1&not-gclid=2&foo+mc_eid=3",
+      "https://example.com/?+fbclid=1",
+      "https://example.com/?%20fbclid=1",
+      "https://example.com/#fbclid=1",
   });
-  std::for_each(urls.begin(), urls.end(), [this](GURL url){
+  for (const auto& url : urls) {
     net::TestDelegate test_delegate;
-    std::unique_ptr<net::URLRequest> request =
-        context()->CreateRequest(url, net::IDLE, &test_delegate,
-                                 TRAFFIC_ANNOTATION_FOR_TESTS);
+    std::unique_ptr<net::URLRequest> request = context()->CreateRequest(
+        GURL(url), net::IDLE, &test_delegate, TRAFFIC_ANNOTATION_FOR_TESTS);
 
-    std::shared_ptr<brave::BraveRequestInfo>
-        brave_request_info(new brave::BraveRequestInfo());
+    std::shared_ptr<brave::BraveRequestInfo> brave_request_info(
+        new brave::BraveRequestInfo());
     brave::BraveRequestInfo::FillCTXFromRequest(request.get(),
-        brave_request_info);
+                                                brave_request_info);
     brave::ResponseCallback callback;
-    int ret = brave::OnBeforeURLRequest_SiteHacksWork(callback,
-        brave_request_info);
+    int ret =
+        brave::OnBeforeURLRequest_SiteHacksWork(callback, brave_request_info);
     EXPECT_EQ(ret, net::OK);
     // new_url should not be set
     EXPECT_TRUE(brave_request_info->new_url_spec.empty());
-    EXPECT_EQ(request->url(), url);
-  });
+    EXPECT_EQ(request->url(), GURL(url));
+  }
 }
 
 TEST_F(BraveSiteHacksNetworkDelegateHelperTest, QueryStringFiltered) {
-  std::vector<std::pair<GURL, GURL> > urls({
-    // { original url, expected url after filtering }
-    { GURL("https://example.com/?fbclid=1234"), GURL("https://example.com/") },
-    { GURL("https://example.com/?fbclid=1234&"), GURL("https://example.com/") },
-    { GURL("https://example.com/?&fbclid=1234"), GURL("https://example.com/") },
-    { GURL("https://example.com/?gclid=1234"), GURL("https://example.com/") },
-    { GURL("https://example.com/?fbclid=0&gclid=1&msclkid=a&mc_eid=a1"),
-      GURL("https://example.com/") },
-    { GURL("https://example.com/?fbclid=&foo=1&bar=2&gclid=abc"),
-      GURL("https://example.com/?fbclid=&foo=1&bar=2") },
-    { GURL("https://example.com/?fbclid=&foo=1&gclid=1234&bar=2"),
-      GURL("https://example.com/?fbclid=&foo=1&bar=2") },
-    { GURL("http://u:p@example.com/path/file.html?foo=1&fbclid=abcd#fragment"),
-      GURL("http://u:p@example.com/path/file.html?foo=1#fragment") },
-    // Obscure edge cases that break most parsers:
-    { GURL("https://example.com/?fbclid&foo&&gclid=2&bar=&%20"),
-      GURL("https://example.com/?fbclid&foo&&bar=&%20") },
-    { GURL("https://example.com/?fbclid=1&1==2&=msclkid&foo=bar&&a=b=c&"),
-      GURL("https://example.com/?1==2&=msclkid&foo=bar&&a=b=c&") },
-    { GURL("https://example.com/?fbclid=1&=2&?foo=yes&bar=2+"),
-      GURL("https://example.com/?=2&?foo=yes&bar=2+") },
-    { GURL("https://example.com/?fbclid=1&a+b+c=some%20thing&1%202=3+4"),
-      GURL("https://example.com/?a+b+c=some%20thing&1%202=3+4") },
-  });
-  std::for_each(urls.begin(), urls.end(), [this](std::pair<GURL, GURL> url){
+  const std::vector<const std::pair<const std::string, const std::string>> urls(
+      {
+          // { original url, expected url after filtering }
+          {"https://example.com/?fbclid=1234", "https://example.com/"},
+          {"https://example.com/?fbclid=1234&", "https://example.com/"},
+          {"https://example.com/?&fbclid=1234", "https://example.com/"},
+          {"https://example.com/?gclid=1234", "https://example.com/"},
+          {"https://example.com/?fbclid=0&gclid=1&msclkid=a&mc_eid=a1",
+           "https://example.com/"},
+          {"https://example.com/?fbclid=&foo=1&bar=2&gclid=abc",
+           "https://example.com/?fbclid=&foo=1&bar=2"},
+          {"https://example.com/?fbclid=&foo=1&gclid=1234&bar=2",
+           "https://example.com/?fbclid=&foo=1&bar=2"},
+          {"http://u:p@example.com/path/file.html?foo=1&fbclid=abcd#fragment",
+           "http://u:p@example.com/path/file.html?foo=1#fragment"},
+          // Obscure edge cases that break most parsers:
+          {"https://example.com/?fbclid&foo&&gclid=2&bar=&%20",
+           "https://example.com/?fbclid&foo&&bar=&%20"},
+          {"https://example.com/?fbclid=1&1==2&=msclkid&foo=bar&&a=b=c&",
+           "https://example.com/?1==2&=msclkid&foo=bar&&a=b=c&"},
+          {"https://example.com/?fbclid=1&=2&?foo=yes&bar=2+",
+           "https://example.com/?=2&?foo=yes&bar=2+"},
+          {"https://example.com/?fbclid=1&a+b+c=some%20thing&1%202=3+4",
+           "https://example.com/?a+b+c=some%20thing&1%202=3+4"},
+      });
+  for (const auto& pair : urls) {
     net::TestDelegate test_delegate;
     std::unique_ptr<net::URLRequest> request =
-        context()->CreateRequest(url.first, net::IDLE, &test_delegate,
+        context()->CreateRequest(GURL(pair.first), net::IDLE, &test_delegate,
                                  TRAFFIC_ANNOTATION_FOR_TESTS);
 
-    std::shared_ptr<brave::BraveRequestInfo>
-        brave_request_info(new brave::BraveRequestInfo());
+    std::shared_ptr<brave::BraveRequestInfo> brave_request_info(
+        new brave::BraveRequestInfo());
     brave::BraveRequestInfo::FillCTXFromRequest(request.get(),
-        brave_request_info);
+                                                brave_request_info);
     brave::ResponseCallback callback;
-    int ret = brave::OnBeforeURLRequest_SiteHacksWork(callback,
-        brave_request_info);
+    int ret =
+        brave::OnBeforeURLRequest_SiteHacksWork(callback, brave_request_info);
     EXPECT_EQ(ret, net::OK);
-    EXPECT_STREQ(brave_request_info->new_url_spec.c_str(),
-                 url.second.spec().c_str());
-  });
+    EXPECT_EQ(brave_request_info->new_url_spec, pair.second);
+  }
 }
 
 }  // namespace

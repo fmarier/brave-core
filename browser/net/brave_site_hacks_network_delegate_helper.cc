@@ -30,9 +30,11 @@ namespace brave {
 
 namespace {
 
-const std::vector<std::string> query_string_trackers = {
-  "fbclid", "gclid", "msclkid", "mc_eid"
-};
+const std::vector<const std::string>& GetQueryStringTrackers() {
+  static const base::NoDestructor<std::vector<const std::string>> trackers(
+      {"fbclid", "gclid", "msclkid", "mc_eid"});
+  return *trackers;
+}
 
 bool ApplyPotentialReferrerBlock(std::shared_ptr<BraveRequestInfo> ctx) {
   DCHECK_CURRENTLY_ON(BrowserThread::IO);
@@ -55,17 +57,14 @@ bool ApplyPotentialReferrerBlock(std::shared_ptr<BraveRequestInfo> ctx) {
   return false;
 }
 
-bool ApplyPotentialQueryStringFilter(std::shared_ptr<BraveRequestInfo> ctx) {
-  DCHECK_CURRENTLY_ON(BrowserThread::IO);
-  if (!ctx->request_url.has_query()) {
-    return false;
-  }
-
-  std::string new_query = ctx->request_url.query();
+void ApplyPotentialQueryStringFilter(const GURL& request_url,
+                                     std::string* new_url_spec) {
+  std::string new_query = request_url.query();
 
   bool modified = false;
-  for (auto tracker : query_string_trackers) {
-    size_t key_size, key_start;
+  for (auto tracker : GetQueryStringTrackers()) {
+    size_t key_size = 0;
+    size_t key_start = std::string::npos;
 
     // Look for the tracker anywhere in the query string
     // (e.g. ?...fbclid=1234...).
@@ -125,12 +124,8 @@ bool ApplyPotentialQueryStringFilter(std::shared_ptr<BraveRequestInfo> ctx) {
       replacements.SetQuery(new_query.c_str(),
                             url::Component(0, new_query.size()));
     }
-    ctx->new_url_spec =
-      ctx->request_url.ReplaceComponents(replacements).spec();
-    return true;
+    *new_url_spec = request_url.ReplaceComponents(replacements).spec();
   }
-
-  return false;
 }
 
 }  // namespace
@@ -139,7 +134,10 @@ int OnBeforeURLRequest_SiteHacksWork(
     const ResponseCallback& next_callback,
     std::shared_ptr<BraveRequestInfo> ctx) {
   ApplyPotentialReferrerBlock(ctx);
-  ApplyPotentialQueryStringFilter(ctx);
+
+  if (ctx->request_url.has_query()) {
+    ApplyPotentialQueryStringFilter(ctx->request_url, &ctx->new_url_spec);
+  }
   return net::OK;
 }
 
