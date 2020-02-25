@@ -82,8 +82,8 @@ class BraveContentSettingsAgentImplBrowserTest : public InProcessBrowserTest {
     ASSERT_TRUE(embedded_test_server()->Start());
 
     url_ = embedded_test_server()->GetURL("a.com", "/iframe.html");
-    iframe_url_ = embedded_test_server()->GetURL("b.com", "/simple.html");
-    image_url_ = embedded_test_server()->GetURL("b.com", "/logo.png");
+    cross_site_url_ = embedded_test_server()->GetURL("b.com", "/simple.html");
+    cross_site_image_url_ = embedded_test_server()->GetURL("b.com", "/logo.png");
     top_level_page_url_ = embedded_test_server()->GetURL("a.com", "/");
     top_level_page_pattern_ =
         ContentSettingsPattern::FromString("http://a.com/*");
@@ -129,18 +129,16 @@ class BraveContentSettingsAgentImplBrowserTest : public InProcessBrowserTest {
   }
 
   const GURL& url() { return url_; }
-  const GURL& iframe_url() { return iframe_url_; }
-  const GURL& image_url() { return image_url_; }
+  const GURL& cross_site_url() { return cross_site_url_; }
+  const GURL& cross_site_image_url() { return cross_site_image_url_; }
 
-  std::string create_image_script() {
+  std::string create_image_script(const GURL& url) {
     std::string s;
     s = " var img = document.createElement('img');"
         " img.onload = function () {"
         "   domAutomationController.send(img.src);"
         " };"
-        " img.src = '" +
-        image_url().spec() +
-        "';"
+        " img.src = '" + url.spec() + "';"
         " document.body.appendChild(img);";
     return s;
   }
@@ -264,9 +262,9 @@ class BraveContentSettingsAgentImplBrowserTest : public InProcessBrowserTest {
                                  embedded_test_server()->GetURL(origin, path));
   }
 
-  void NavigateIframe() {
-    ASSERT_TRUE(NavigateIframeToURL(contents(), kIframeID, iframe_url()));
-    ASSERT_EQ(child_frame()->GetLastCommittedURL(), iframe_url());
+  void NavigateIframe(const GURL& url) {
+    ASSERT_TRUE(NavigateIframeToURL(contents(), kIframeID, url));
+    ASSERT_EQ(child_frame()->GetLastCommittedURL(), url);
   }
 
   template <typename T>
@@ -276,8 +274,8 @@ class BraveContentSettingsAgentImplBrowserTest : public InProcessBrowserTest {
 
  private:
   GURL url_;
-  GURL iframe_url_;
-  GURL image_url_;
+  GURL cross_site_url_;
+  GURL cross_site_image_url_;
   GURL top_level_page_url_;
   ContentSettingsPattern top_level_page_pattern_;
   ContentSettingsPattern first_party_pattern_;
@@ -306,7 +304,7 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest,
                                           &isPointInPath));
   EXPECT_TRUE(isPointInPath);
 
-  NavigateIframe();
+  NavigateIframe(cross_site_url());
   EXPECT_TRUE(ExecuteScriptAndExtractBool(child_frame(), kPointInPathScript,
                                           &isPointInPath));
   EXPECT_FALSE(isPointInPath);
@@ -328,7 +326,7 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest, BlockFP) {
                                           &isPointInPath));
   EXPECT_FALSE(isPointInPath);
 
-  NavigateIframe();
+  NavigateIframe(cross_site_url());
   EXPECT_TRUE(ExecuteScriptAndExtractBool(child_frame(), kPointInPathScript,
                                           &isPointInPath));
   EXPECT_FALSE(isPointInPath);
@@ -350,7 +348,7 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest, AllowFP) {
                                           &isPointInPath));
   EXPECT_TRUE(isPointInPath);
 
-  NavigateIframe();
+  NavigateIframe(cross_site_url());
   EXPECT_TRUE(ExecuteScriptAndExtractBool(child_frame(), kPointInPathScript,
                                           &isPointInPath));
   EXPECT_TRUE(isPointInPath);
@@ -373,7 +371,7 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest,
                                           &isPointInPath));
   EXPECT_TRUE(isPointInPath);
 
-  NavigateIframe();
+  NavigateIframe(cross_site_url());
   EXPECT_TRUE(ExecuteScriptAndExtractBool(child_frame(), kPointInPathScript,
                                           &isPointInPath));
   EXPECT_FALSE(isPointInPath);
@@ -397,7 +395,7 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest,
                                           &isPointInPath));
   EXPECT_TRUE(isPointInPath);
 
-  NavigateIframe();
+  NavigateIframe(cross_site_url());
   EXPECT_TRUE(ExecuteScriptAndExtractBool(child_frame(), kPointInPathScript,
                                           &isPointInPath));
   EXPECT_TRUE(isPointInPath);
@@ -420,7 +418,7 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest,
       ExecuteScriptAndExtractInt(contents(), kGetImageDataScript, &bufLen));
   EXPECT_EQ(400, bufLen);
 
-  NavigateIframe();
+  NavigateIframe(cross_site_url());
   EXPECT_TRUE(
       ExecuteScriptAndExtractInt(child_frame(), kGetImageDataScript, &bufLen));
   EXPECT_EQ(0, bufLen);
@@ -443,7 +441,7 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest,
       ExecuteScriptAndExtractInt(contents(), kGetImageDataScript, &bufLen));
   EXPECT_EQ(0, bufLen);
 
-  NavigateIframe();
+  NavigateIframe(cross_site_url());
   EXPECT_TRUE(
       ExecuteScriptAndExtractInt(child_frame(), kGetImageDataScript, &bufLen));
   EXPECT_EQ(0, bufLen);
@@ -466,7 +464,7 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest,
       ExecuteScriptAndExtractInt(contents(), kGetImageDataScript, &bufLen));
   EXPECT_EQ(400, bufLen);
 
-  NavigateIframe();
+  NavigateIframe(cross_site_url());
   EXPECT_TRUE(
       ExecuteScriptAndExtractInt(child_frame(), kGetImageDataScript, &bufLen));
   EXPECT_EQ(400, bufLen);
@@ -485,17 +483,16 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest,
   EXPECT_EQ(ExecScriptGetStr(kReferrerScript, contents()), "");
   EXPECT_TRUE(GetLastReferrer(url()).empty());
 
-  // Sub-resources loaded within the page get their referrer spoofed.
-  EXPECT_EQ(ExecScriptGetStr(create_image_script(), contents()),
-            image_url().spec());
-  EXPECT_EQ(GetLastReferrer(image_url()), iframe_url().GetOrigin().spec());
+  // Cross-site sub-resources within the page get their referrer spoofed.
+  EXPECT_EQ(ExecScriptGetStr(create_image_script(cross_site_image_url()), contents()),
+            cross_site_image_url().spec());
+  EXPECT_EQ(GetLastReferrer(cross_site_image_url()), cross_site_url().GetOrigin().spec());
 
-  // Cross-origin iframe navigations get their referrer spoofed.
-  NavigateIframe();
-
+  // Cross-site iframe navigations get their referrer spoofed.
+  NavigateIframe(cross_site_url());
   EXPECT_EQ(ExecScriptGetStr(kReferrerScript, child_frame()),
-            iframe_url().GetOrigin().spec());
-  EXPECT_EQ(GetLastReferrer(iframe_url()), iframe_url().GetOrigin().spec());
+            cross_site_url().GetOrigin().spec());
+  EXPECT_EQ(GetLastReferrer(cross_site_url()), cross_site_url().GetOrigin().spec());
 }
 
 IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest,
@@ -507,17 +504,16 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest,
   EXPECT_EQ(ExecScriptGetStr(kReferrerScript, contents()), "");
   EXPECT_TRUE(GetLastReferrer(url()).empty());
 
-  // Sub-resources loaded within the page get their referrer spoofed.
-  EXPECT_EQ(ExecScriptGetStr(create_image_script(), contents()),
-            image_url().spec());
-  EXPECT_EQ(GetLastReferrer(image_url()), image_url().GetOrigin().spec());
+  // Cross-site sub-resources within the page get their referrer spoofed.
+  EXPECT_EQ(ExecScriptGetStr(create_image_script(cross_site_image_url()), contents()),
+            cross_site_image_url().spec());
+  EXPECT_EQ(GetLastReferrer(cross_site_image_url()), cross_site_image_url().GetOrigin().spec());
 
-  // Cross-origin iframe navigations get their referrer spoofed.
-  NavigateIframe();
-
+  // Cross-site iframe navigations get their referrer spoofed.
+  NavigateIframe(cross_site_url());
   EXPECT_EQ(ExecScriptGetStr(kReferrerScript, child_frame()),
-            iframe_url().GetOrigin().spec());
-  EXPECT_EQ(GetLastReferrer(iframe_url()), iframe_url().GetOrigin().spec());
+            cross_site_url().GetOrigin().spec());
+  EXPECT_EQ(GetLastReferrer(cross_site_url()), cross_site_url().GetOrigin().spec());
 }
 
 IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest,
@@ -529,16 +525,15 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest,
   EXPECT_EQ(ExecScriptGetStr(kReferrerScript, contents()), "");
   EXPECT_TRUE(GetLastReferrer(url()).empty());
 
-  // Sub-resources loaded within the page get the page URL as referrer.
-  EXPECT_EQ(ExecScriptGetStr(create_image_script(), contents()),
-            image_url().spec());
-  EXPECT_EQ(GetLastReferrer(image_url()), url().spec());
+  // Cross-site sub-resources within the page get the page URL as referrer.
+  EXPECT_EQ(ExecScriptGetStr(create_image_script(cross_site_image_url()), contents()),
+            cross_site_image_url().spec());
+  EXPECT_EQ(GetLastReferrer(cross_site_image_url()), url().spec());
 
-  // A cross-origin iframe navigation gets the URL of the first one as
+  // A cross-site iframe navigation gets the URL of the first one as
   // referrer.
-  NavigateIframe();
-
-  EXPECT_EQ(GetLastReferrer(iframe_url()), url());
+  NavigateIframe(cross_site_url());
+  EXPECT_EQ(GetLastReferrer(cross_site_url()), url());
   EXPECT_EQ(ExecScriptGetStr(kReferrerScript, child_frame()), url().spec());
 }
 
@@ -552,16 +547,15 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest,
   EXPECT_EQ(ExecScriptGetStr(kReferrerScript, contents()), "");
   EXPECT_TRUE(GetLastReferrer(url()).empty());
 
-  // Sub-resources loaded within the page get the page URL as referrer.
-  EXPECT_EQ(ExecScriptGetStr(create_image_script(), contents()),
-            image_url().spec());
-  EXPECT_EQ(GetLastReferrer(image_url()), url().spec());
+  // Cross-site sub-resources within the page get the page URL as referrer.
+  EXPECT_EQ(ExecScriptGetStr(create_image_script(cross_site_image_url()), contents()),
+            cross_site_image_url().spec());
+  EXPECT_EQ(GetLastReferrer(cross_site_image_url()), url().spec());
 
   // A cross-origin iframe navigation gets the URL of the first one as
   // referrer.
-  NavigateIframe();
-
-  EXPECT_EQ(GetLastReferrer(iframe_url()), url());
+  NavigateIframe(cross_site_url());
+  EXPECT_EQ(GetLastReferrer(cross_site_url()), url());
   EXPECT_EQ(ExecScriptGetStr(kReferrerScript, child_frame()), url().spec());
 }
 
@@ -570,7 +564,7 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest,
   NavigateToPageWithIframe();
   CheckCookie(child_frame(), kTestCookie);
 
-  NavigateIframe();
+  NavigateIframe(cross_site_url());
   CheckCookie(child_frame(), kEmptyCookie);
 }
 
@@ -581,7 +575,7 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest,
   NavigateToPageWithIframe();
   CheckCookie(child_frame(), kTestCookie);
 
-  NavigateIframe();
+  NavigateIframe(cross_site_url());
   CheckCookie(child_frame(), kEmptyCookie);
 }
 
@@ -591,7 +585,7 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest, BlockCookies) {
   NavigateToPageWithIframe();
   CheckCookie(contents(), kEmptyCookie);
 
-  NavigateIframe();
+  NavigateIframe(cross_site_url());
   CheckCookie(child_frame(), kEmptyCookie);
 }
 
@@ -601,7 +595,7 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest, AllowCookies) {
   NavigateToPageWithIframe();
   CheckCookie(contents(), kTestCookie);
 
-  NavigateIframe();
+  NavigateIframe(cross_site_url());
   CheckCookie(child_frame(), kTestCookie);
 }
 
@@ -617,7 +611,7 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest,
   NavigateToPageWithIframe();
   CheckCookie(contents(), kEmptyCookie);
 
-  NavigateIframe();
+  NavigateIframe(cross_site_url());
   CheckCookie(child_frame(), kTestCookie);
 }
 
@@ -633,7 +627,7 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest,
   NavigateToPageWithIframe();
   CheckCookie(contents(), kTestCookie);
 
-  NavigateIframe();
+  NavigateIframe(cross_site_url());
   CheckCookie(child_frame(), kEmptyCookie);
 }
 
@@ -645,7 +639,7 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest,
   NavigateToPageWithIframe();
   CheckCookie(contents(), kTestCookie);
 
-  NavigateIframe();
+  NavigateIframe(cross_site_url());
   CheckCookie(child_frame(), kTestCookie);
 }
 
@@ -656,7 +650,7 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest,
   NavigateToPageWithIframe();
   CheckCookie(contents(), kTestCookie);
 
-  NavigateIframe();
+  NavigateIframe(cross_site_url());
   CheckCookie(child_frame(), kTestCookie);
 }
 
@@ -668,7 +662,7 @@ IN_PROC_BROWSER_TEST_F(BraveContentSettingsAgentImplBrowserTest,
   NavigateToPageWithIframe();
   CheckCookie(contents(), kEmptyCookie);
 
-  NavigateIframe();
+  NavigateIframe(cross_site_url());
   CheckCookie(child_frame(), kEmptyCookie);
 }
 
