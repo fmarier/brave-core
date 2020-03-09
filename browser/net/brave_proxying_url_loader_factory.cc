@@ -14,15 +14,18 @@
 #include "base/task/post_task.h"
 #include "brave/browser/net/brave_request_handler.h"
 #include "brave/components/brave_shields/browser/adblock_stub_response.h"
+#include "brave/components/brave_shields/browser/brave_shields_util.h"
 #include "content/public/browser/browser_context.h"
 #include "content/public/browser/browser_task_traits.h"
 #include "content/public/browser/browser_thread.h"
 #include "content/public/browser/render_frame_host.h"
+#include "content/public/common/referrer.h"
 #include "content/public/common/url_utils.h"
 #include "mojo/public/cpp/bindings/binding.h"
 #include "mojo/public/cpp/system/data_pipe_producer.h"
 #include "mojo/public/cpp/system/string_data_source.h"
 #include "net/base/completion_repeating_callback.h"
+#include "net/base/registry_controlled_domains/registry_controlled_domain.h"
 #include "net/http/http_util.h"
 #include "services/network/public/cpp/features.h"
 #include "url/origin.h"
@@ -522,11 +525,32 @@ void BraveProxyingURLLoaderFactory::InProgressRequest::ContinueToBeforeRedirect(
 
   target_client_->OnReceiveRedirect(redirect_info,
                                     std::move(current_response_));
+  const GURL original_url = request_.url;
   request_.url = redirect_info.new_url;
   request_.method = redirect_info.new_method;
   request_.site_for_cookies = redirect_info.new_site_for_cookies;
   request_.referrer = GURL(redirect_info.new_referrer);
   request_.referrer_policy = redirect_info.new_referrer_policy;
+
+  if (!net::registry_controlled_domains::SameDomainOrHost(
+          original_url, request_.url,
+          net::registry_controlled_domains::INCLUDE_PRIVATE_REGISTRIES)) {
+    const bool allow_referrers = false;  // TODO: get the real thing
+    const bool shields_up = true;  // TODO: get the real thing
+
+    GURL replacement_referrer_url;
+
+    GURL document_url;  // TODO: set this to make the whitelist work
+
+    content::Referrer new_referrer;
+    if (brave_shields::ShouldSetReferrer(
+            allow_referrers, shields_up, request_.referrer, document_url,
+            request_.url, replacement_referrer_url,
+            network::mojom::ReferrerPolicy::kNever, /* unused */
+            &new_referrer)) {
+      request_.referrer = new_referrer.url;
+    }
+  }
 
   // The request method can be changed to "GET". In this case we need to
   // reset the request body manually.
