@@ -72,6 +72,8 @@ DECLARE_LAZY_MATCHER(tracker_appended_matcher,
 bool ApplyPotentialReferrerBlock(std::shared_ptr<BraveRequestInfo> ctx) {
   GURL target_origin = ctx->request_url.GetOrigin();
   GURL tab_origin = ctx->tab_origin;
+  LOG(ERROR) << "ApplyPotentialReferrerBlock(): " << tab_origin.spec()
+             << " -> " << target_origin.spec();
   if (tab_origin.SchemeIs(kChromeExtensionScheme)) {
     return false;
   }
@@ -117,7 +119,9 @@ void ApplyPotentialQueryStringFilter(const GURL& request_url,
 int OnBeforeURLRequest_SiteHacksWork(
     const ResponseCallback& next_callback,
     std::shared_ptr<BraveRequestInfo> ctx) {
+  LOG(ERROR) << "OnBeforeURLRequest(" << ctx->request_url.spec() << ")";
   ApplyPotentialReferrerBlock(ctx);
+  //ctx->new_referrer = GURL("https://example.net");
 
   if (ctx->request_url.has_query()) {
     ApplyPotentialQueryStringFilter(ctx->request_url, &ctx->new_url_spec);
@@ -129,6 +133,17 @@ int OnBeforeStartTransaction_SiteHacksWork(
     net::HttpRequestHeaders* headers,
     const ResponseCallback& next_callback,
     std::shared_ptr<BraveRequestInfo> ctx) {
+  LOG(ERROR) << "OnBeforeStartTransaction(" << ctx->request_url.spec() << ")";
+  std::string referrer;
+  if (headers->GetHeader(kRefererHeader, &referrer)) {
+    LOG(ERROR) << "- Referer: " << referrer;
+  }
+
+  ctx->new_referrer = GURL("https://example.com");
+  //headers->SetHeader(kRefererHeader, "");
+  //ctx->set_headers.insert(kRefererHeader);
+  //ApplyPotentialReferrerBlock(ctx);
+
   if (IsUAWhitelisted(ctx->request_url)) {
     std::string user_agent;
     if (headers->GetHeader(kUserAgentHeader, &user_agent)) {

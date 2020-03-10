@@ -201,6 +201,7 @@ void BraveProxyingURLLoaderFactory::InProgressRequest::OnReceiveResponse(
 void BraveProxyingURLLoaderFactory::InProgressRequest::OnReceiveRedirect(
     const net::RedirectInfo& redirect_info,
     network::mojom::URLResponseHeadPtr head) {
+  // TODO: print before & after URLs as well as referrers in request_ and redirect_info
   current_response_ = std::move(head);
   HandleResponseOrRedirectHeaders(
       base::BindRepeating(&InProgressRequest::ContinueToBeforeRedirect,
@@ -265,6 +266,7 @@ void BraveProxyingURLLoaderFactory::InProgressRequest::
   redirect_info.new_method = request_.method;
   redirect_info.new_url = redirect_url_;
   redirect_info.new_site_for_cookies = redirect_url_;
+  redirect_info.new_referrer = "https://example.nz";
 
   network::mojom::URLResponseHeadPtr head =
       network::mojom::URLResponseHead::New();
@@ -322,12 +324,20 @@ void BraveProxyingURLLoaderFactory::InProgressRequest::
 
   if (!redirect_url_.is_empty()) {
     HandleBeforeRequestRedirect();
+    if (!ctx_->new_referrer.is_empty()) {
+      LOG(ERROR) << "=> WOULD OVERWRITE REFERRER WITH " << ctx_->new_referrer.spec();
+    } else {
+      LOG(ERROR) << "?? WOULD NOT OVERWRITE REFERRER SINCE NEW_REFERRER IS EMPTY: " << ctx_->new_referrer.spec();
+    }
     return;
   }
 
   DCHECK(ctx_);
   if (!ctx_->new_referrer.is_empty()) {
+    LOG(ERROR) << "=> OVERWRITING REFERRER WITH " << ctx_->new_referrer.spec();
     request_.referrer = ctx_->new_referrer;
+  } else {
+    LOG(ERROR) << "?? NEW_REFERRER IS EMPTY: " << ctx_->new_referrer.spec();
   }
 
   if (proxied_client_receiver_.is_bound())
@@ -498,6 +508,7 @@ void BraveProxyingURLLoaderFactory::InProgressRequest::
     redirect_info.new_method = request_.method;
     redirect_info.new_url = new_url;
     redirect_info.new_site_for_cookies = new_url;
+    redirect_info.new_referrer = "https://example.ca";
 
     // These will get re-bound if a new request is initiated by
     // |FollowRedirect()|.
@@ -515,6 +526,7 @@ void BraveProxyingURLLoaderFactory::InProgressRequest::
 void BraveProxyingURLLoaderFactory::InProgressRequest::ContinueToBeforeRedirect(
     const net::RedirectInfo& redirect_info,
     int error_code) {
+  // TODO: print before & after URLs as well as referrers in request_ and redirect_info
   if (error_code != net::OK) {
     OnRequestError(network::URLLoaderCompletionStatus(error_code));
     return;
@@ -525,32 +537,13 @@ void BraveProxyingURLLoaderFactory::InProgressRequest::ContinueToBeforeRedirect(
 
   target_client_->OnReceiveRedirect(redirect_info,
                                     std::move(current_response_));
-  const GURL original_url = request_.url;
   request_.url = redirect_info.new_url;
   request_.method = redirect_info.new_method;
   request_.site_for_cookies = redirect_info.new_site_for_cookies;
+  LOG(ERROR) << "!! OVERWRITING REFERRER: " << request_.referrer.spec()
+             << " -> " << redirect_info.new_referrer;
   request_.referrer = GURL(redirect_info.new_referrer);
   request_.referrer_policy = redirect_info.new_referrer_policy;
-
-  if (!net::registry_controlled_domains::SameDomainOrHost(
-          original_url, request_.url,
-          net::registry_controlled_domains::INCLUDE_PRIVATE_REGISTRIES)) {
-    const bool allow_referrers = false;  // TODO: get the real thing
-    const bool shields_up = true;  // TODO: get the real thing
-
-    GURL replacement_referrer_url;
-
-    GURL document_url;  // TODO: set this to make the whitelist work
-
-    content::Referrer new_referrer;
-    if (brave_shields::ShouldSetReferrer(
-            allow_referrers, shields_up, request_.referrer, document_url,
-            request_.url, replacement_referrer_url,
-            network::mojom::ReferrerPolicy::kNever, /* unused */
-            &new_referrer)) {
-      request_.referrer = new_referrer.url;
-    }
-  }
 
   // The request method can be changed to "GET". In this case we need to
   // reset the request body manually.
