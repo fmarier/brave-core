@@ -25,6 +25,8 @@
 #include "components/prefs/pref_service.h"
 #include "content/public/browser/browser_task_traits.h"
 #include "content/public/browser/browser_thread.h"
+#include "content/public/common/url_constants.h"
+#include "extensions/common/constants.h"
 
 #if BUILDFLAG(ENABLE_BRAVE_REFERRALS)
 #include "brave/browser/net/brave_referrals_network_delegate_helper.h"
@@ -125,7 +127,7 @@ int BraveRequestHandler::OnBeforeURLRequest(
     std::shared_ptr<brave::BraveRequestInfo> ctx,
     net::CompletionOnceCallback callback,
     GURL* new_url) {
-  if (before_url_request_callbacks_.empty()) {
+  if (before_url_request_callbacks_.empty() || IsInternalScheme(ctx)) {
     return net::OK;
   }
   SCOPED_UMA_HISTOGRAM_TIMER("Brave.OnBeforeURLRequest_Handler");
@@ -140,7 +142,7 @@ int BraveRequestHandler::OnBeforeStartTransaction(
     std::shared_ptr<brave::BraveRequestInfo> ctx,
     net::CompletionOnceCallback callback,
     net::HttpRequestHeaders* headers) {
-  if (before_start_transaction_callbacks_.empty()) {
+  if (before_start_transaction_callbacks_.empty() || IsInternalScheme(ctx)) {
     return net::OK;
   }
   ctx->event_type = brave::kOnBeforeStartTransaction;
@@ -163,7 +165,7 @@ int BraveRequestHandler::OnHeadersReceived(
         original_response_headers, override_response_headers);
   }
 
-  if (headers_received_callbacks_.empty()) {
+  if (headers_received_callbacks_.empty() || IsInternalScheme(ctx)) {
     return net::OK;
   }
 
@@ -282,4 +284,11 @@ void BraveRequestHandler::RunNextCallback(
     }
   }
   RunCallbackForRequestIdentifier(ctx->request_identifier, rv);
+}
+
+bool BraveRequestHandler::IsInternalScheme(
+    std::shared_ptr<brave::BraveRequestInfo> ctx) {
+  DCHECK(ctx);
+  return ctx->request_url.SchemeIs(extensions::kExtensionScheme) ||
+      ctx->request_url.SchemeIs(content::kChromeUIScheme);
 }

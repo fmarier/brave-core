@@ -54,6 +54,8 @@ class BraveRequestHandler {
 
   void RunNextCallback(std::shared_ptr<brave::BraveRequestInfo> ctx);
 
+  bool IsInternalScheme(std::shared_ptr<brave::BraveRequestInfo> ctx);
+
   std::vector<brave::OnBeforeURLRequestCallback> before_url_request_callbacks_;
   std::vector<brave::OnBeforeStartTransactionCallback>
       before_start_transaction_callbacks_;
