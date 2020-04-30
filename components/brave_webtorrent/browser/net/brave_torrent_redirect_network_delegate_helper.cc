@@ -54,13 +54,16 @@ int OnHeadersReceived_TorrentRedirectWork(
 
   if (!original_response_headers ||
       !IsMainFrameResource(ctx) ||
+      !ctx->request_url.SchemeIsHTTPOrHTTPS() ||
       ctx->is_webtorrent_disabled ||
       // download .torrent, do not redirect
       (IsWebtorrentInitiated(ctx) && !IsViewerURL(ctx->request_url)) ||
       !IsTorrentFile(ctx->request_url, original_response_headers)) {
+    LOG(ERROR) << "NO REDIRECT";
     return net::OK;
   }
 
+  LOG(ERROR) << "REDIRECT";
   *override_response_headers =
     new net::HttpResponseHeaders(original_response_headers->raw_headers());
   (*override_response_headers)

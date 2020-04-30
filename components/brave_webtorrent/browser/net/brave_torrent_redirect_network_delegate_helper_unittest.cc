@@ -34,6 +34,9 @@ class BraveTorrentRedirectNetworkDelegateHelperTest : public testing::Test {
     non_torrent_extension_url_ = GURL(
         "chrome-extension://lgjmpdmojkpocjcopdikifhejkkjglho/extension/"
         "brave_webtorrent2.html?https://webtorrent.io/torrents/sintel");
+    non_http_extension_url_ = GURL(
+        "chrome-extension://lgjmpdmojkpocjcopdikifhejkkjglho/extension/"
+        "brave_webtorrent2.html?http://ftp.debian.org");
   }
 
   const GURL& torrent_url() { return torrent_url_; }
@@ -50,6 +53,9 @@ class BraveTorrentRedirectNetworkDelegateHelperTest : public testing::Test {
 
   const GURL& non_torrent_extension_url() { return non_torrent_extension_url_; }
 
+  const GURL& non_http_extension_url() { return non_http_extension_url_; }
+
+
  private:
   GURL torrent_url_;
   GURL torrent_viewer_url_;
@@ -58,6 +64,7 @@ class BraveTorrentRedirectNetworkDelegateHelperTest : public testing::Test {
   GURL torrent_extension_url_;
   GURL torrent_viewer_extension_url_;
   GURL non_torrent_extension_url_;
+  GURL non_http_extension_url_;
 };
 
 TEST_F(BraveTorrentRedirectNetworkDelegateHelperTest,
@@ -330,6 +337,29 @@ TEST_F(BraveTorrentRedirectNetworkDelegateHelperTest,
       &allowed_unsafe_redirect_url, ResponseCallback(), request_info);
 
   EXPECT_EQ(overwrite_response_headers->GetStatusLine(), "HTTP/1.0 200 OK");
+  EXPECT_FALSE(overwrite_response_headers->EnumerateHeader(nullptr, "Location",
+                                                           &location));
+  EXPECT_EQ(allowed_unsafe_redirect_url, GURL());
+  EXPECT_EQ(rc, net::OK);
+}
+
+TEST_F(BraveTorrentRedirectNetworkDelegateHelperTest,
+       NoRedirectUnlessHttp) {
+  scoped_refptr<net::HttpResponseHeaders> orig_response_headers =
+      new net::HttpResponseHeaders(std::string());
+  scoped_refptr<net::HttpResponseHeaders> overwrite_response_headers =
+      new net::HttpResponseHeaders(std::string());
+  GURL allowed_unsafe_redirect_url;
+  auto request_info = std::make_shared<brave::BraveRequestInfo>(
+      non_http_extension_url());
+  request_info->resource_type = content::ResourceType::kMainFrame;
+
+  int rc = webtorrent::OnHeadersReceived_TorrentRedirectWork(
+      orig_response_headers.get(), &overwrite_response_headers,
+      &allowed_unsafe_redirect_url, ResponseCallback(), request_info);
+
+  EXPECT_EQ(overwrite_response_headers->GetStatusLine(), "HTTP/1.0 200 OK");
+  std::string location;
   EXPECT_FALSE(overwrite_response_headers->EnumerateHeader(nullptr, "Location",
                                                            &location));
   EXPECT_EQ(allowed_unsafe_redirect_url, GURL());
