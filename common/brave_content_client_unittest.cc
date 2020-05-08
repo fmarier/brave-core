@@ -27,7 +27,7 @@ TEST(BraveContentClientTest, AdditionalSchemesTest) {
   EXPECT_EQ("sync", chrome_sync_url.host());
 }
 
- bool RemovePadding(std::string& padded_string) {
+bool RemovePadding(std::string& padded_string) {
   if (padded_string.size() < 4) {
     return false;  // Missing length field
   }
@@ -48,14 +48,27 @@ TEST(BraveContentClientTest, AdditionalSchemesTest) {
 }
 
 TEST(BraveContentClientTest, RemovePadding) {
-  // TODO: turn this into an array of character arrays
-  const char test_case[] = {
-      0, 0, 0, 4, 'A', 'B', 'C', 'D', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P',
-      'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P',
-      'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'
+  const char inputs[][] = {
+      {
+          0, 0, 0, 4, 'A', 'B', 'C', 'D', 'P', 'P', 'P', 'P', 'P', 'P', 'P',
+          'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P',
+          'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P',
+      },
   };
-  std::string normal1(test_case, sizeof(test_case));
+  const char outputs[] {
+      {
+          'A', 'B', 'C', 'D',
+      },
+  };
 
-  EXPECT_TRUE(RemovePadding(normal1));
-  EXPECT_EQ(normal1, "ABCD");
+  // TODO: convert to a static assert
+  assert(sizeof(inputs) == sizeof(expected));
+
+  for (int i=0; i < sizeof(inputs); i++) {
+    std::string padded_string(inputs[i], sizeof(inputs[i]));
+    const std::string decoded_string(outputs[i], sizeof(outputs[i]));
+
+    EXPECT_TRUE(RemovePadding(padded_string));
+    EXPECT_EQ(padded_string, decoded_string);
+  }
 }
