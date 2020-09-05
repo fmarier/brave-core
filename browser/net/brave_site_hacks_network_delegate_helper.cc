@@ -76,6 +76,8 @@ void ApplyPotentialQueryStringFilter(const GURL& initiator_url,
   DCHECK(new_url_spec);
   SCOPED_UMA_HISTOGRAM_TIMER("Brave.SiteHacks.QueryFilter");
 
+  LOG(ERROR) << request_url.spec() << " <== " << initiator_url.spec();
+
   // Same-site requests are exempted from the filter.
   if (net::registry_controlled_domains::SameDomainOrHost(
           initiator_url, request_url,
@@ -131,6 +133,7 @@ bool ApplyPotentialReferrerBlock(std::shared_ptr<BraveRequestInfo> ctx) {
 int OnBeforeURLRequest_SiteHacksWork(const ResponseCallback& next_callback,
                                      std::shared_ptr<BraveRequestInfo> ctx) {
   ApplyPotentialReferrerBlock(ctx);
+  // TODO: skip Internal Redirects
   if (ctx->request_url.has_query() && ctx->initiator_url.is_valid()) {
     ApplyPotentialQueryStringFilter(ctx->initiator_url, ctx->request_url,
                                     &ctx->new_url_spec);
