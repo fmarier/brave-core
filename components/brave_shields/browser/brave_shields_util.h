@@ -99,6 +99,7 @@ bool MaybeChangeReferrer(
     const GURL& current_referrer,
     const GURL& tab_origin,
     const GURL& target_url,
+    const GURL& redirect_source,
     network::mojom::ReferrerPolicy policy,
     content::Referrer* output_referrer);
 

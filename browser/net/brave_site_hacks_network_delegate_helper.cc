@@ -137,6 +137,7 @@ bool ApplyPotentialReferrerBlock(std::shared_ptr<BraveRequestInfo> ctx) {
   if (brave_shields::MaybeChangeReferrer(
           ctx->allow_referrers, ctx->allow_brave_shields, GURL(ctx->referrer),
           ctx->tab_origin, ctx->request_url,
+          ctx->internal_redirect ? GURL() : ctx->redirect_source,
           blink::ReferrerUtils::NetToMojoReferrerPolicy(ctx->referrer_policy),
           &new_referrer)) {
     ctx->new_referrer = new_referrer.url;

@@ -438,6 +438,7 @@ bool MaybeChangeReferrer(
     const GURL& current_referrer,
     const GURL& tab_origin,
     const GURL& target_url,
+    const GURL& redirect_source,
     network::mojom::ReferrerPolicy policy,
     Referrer* output_referrer) {
   DCHECK(output_referrer);
@@ -447,6 +448,11 @@ bool MaybeChangeReferrer(
 
   const url::Origin original_referrer = url::Origin::Create(current_referrer);
   const url::Origin target_origin = url::Origin::Create(target_url);
+
+  if (redirect_source.is_valid()) {
+    return !net::registry_controlled_domains::SameDomainOrHost(redirect_source, target_url,
+          net::registry_controlled_domains::INCLUDE_PRIVATE_REGISTRIES);
+  }
 
   if (original_referrer.IsSameOriginWith(target_origin)) {
     // Do nothing for same-origin requests. This check also prevents us from
