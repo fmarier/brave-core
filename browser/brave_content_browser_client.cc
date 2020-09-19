@@ -386,6 +386,7 @@ void BraveContentBrowserClient::MaybeHideReferrer(
   }
 
   content::Referrer new_referrer;
+  LOG(ERROR) << (*referrer)->url.spec() << " [" << document_url.spec() << "] -> " << request_url.spec();
   if (brave_shields::MaybeChangeReferrer(
       allow_referrers, shields_up, (*referrer)->url, document_url, request_url,
       GURL() /* redirect_source */, policy,  // TODO: pass the right redirect_source

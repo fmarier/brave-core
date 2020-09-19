@@ -133,6 +133,14 @@ bool ApplyPotentialReferrerBlock(std::shared_ptr<BraveRequestInfo> ctx) {
     return false;
   }
 
+  if (ctx->internal_redirect) {
+    LOG(ERROR) << ctx->referrer << " => " << ctx->request_url.spec()
+               << " (internal redirect)";
+  } else {
+    LOG(ERROR) << ctx->referrer << " => " << ctx->request_url.spec()
+               << " (redirect_source=" << ctx->redirect_source.spec() << ")";
+  }
+
   content::Referrer new_referrer;
   if (brave_shields::MaybeChangeReferrer(
           ctx->allow_referrers, ctx->allow_brave_shields, GURL(ctx->referrer),
