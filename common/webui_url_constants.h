@@ -8,6 +8,7 @@
 
 extern const char kAdblockHost[];
 extern const char kAdblockJS[];
+extern const char kBraveUrlsHost[];
 extern const char kIPFSHost[];
 extern const char kWebcompatReporterHost[];
 extern const char kRewardsPageHost[];
@@ -28,5 +29,9 @@ extern const char kExtensionSettingsURL[];
 extern const char kWalletHost[];
 extern const char kBraveSyncPath[];
 extern const char kBraveSyncSetupPath[];
+
+// Gets the brave:// pages that are shown in brave://brave-urls.
+extern const char* const kBraveHostURLs[];
+extern const size_t kNumberOfBraveHostURLs;
 
 #endif  // BRAVE_COMMON_WEBUI_URL_CONSTANTS_H_

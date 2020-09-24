@@ -1,0 +1,17 @@
+import("//brave/components/common/typescript.gni")
+
+transpile_web_ui("brave_urls_ui") {
+  entry_points = [
+    ["brave_urls", rebase_path("brave_urls.tsx")]
+  ]
+
+  resource_name = "brave_urls"
+}
+
+pack_web_resources("generated_resources") {
+  resource_name = "brave_urls"
+  output_dir = "$root_gen_dir/brave/components/brave_urls/resources"
+  deps = [
+    ":brave_urls_ui"
+  ]
+}

@@ -62,7 +62,9 @@ WebUIController* NewWebUI(WebUI* web_ui, const GURL& url) {
 template<>
 WebUIController* NewWebUI<BasicUI>(WebUI* web_ui, const GURL& url) {
   auto host = url.host_piece();
-  if (host == kAdblockHost) {
+  if (host == kBraveUrlsHost) {
+    return new BraveUrlsUI(web_ui, url.host());
+  } else if (host == kAdblockHost) {
     return new BraveAdblockUI(web_ui, url.host());
   } else if (host == kWebcompatReporterHost) {
     return new WebcompatReporterUI(web_ui, url.host());
@@ -102,7 +104,8 @@ WebUIController* NewWebUI<BasicUI>(WebUI* web_ui, const GURL& url) {
 // with it.
 WebUIFactoryFunction GetWebUIFactoryFunction(WebUI* web_ui,
                                              const GURL& url) {
-  if (url.host_piece() == kAdblockHost ||
+  if (url.host_piece() == kBraveUrlsHost ||
+      url.host_piece() == kAdblockHost ||
       url.host_piece() == kWebcompatReporterHost ||
 #if BUILDFLAG(IPFS_ENABLED)
       (url.host_piece() == kIPFSHost &&

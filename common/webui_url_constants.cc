@@ -7,6 +7,7 @@
 
 const char kAdblockHost[] = "adblock";
 const char kAdblockJS[] = "brave_adblock.js";
+const chat kBraveUrlsHost[] = "brave-urls";
 const char kIPFSHost[] = "ipfs";
 const char kWebcompatReporterHost[] = "webcompat";
 const char kRewardsPageHost[] = "rewards";
@@ -25,3 +26,25 @@ const char kExtensionSettingsURL[] = "brave://settings/extensions";
 const char kWalletHost[] = "wallet";
 const char kBraveSyncPath[] = "braveSync";
 const char kBraveSyncSetupPath[] = "braveSync/setup";
+
+// Add hosts here to be included in brave://brave-urls.
+const char* const kBraveHostURLs[] = {
+  kAdblockHost,
+  kBraveUrlsHost,
+#if BUILDFLAG(IPFS_ENABLED)
+  kIPFSHost,
+#endif  // BUILDFLAG(IPFS_ENABLED)
+#if BUILDFLAG(BRAVE_REWARDS_ENABLED)
+  kRewardsPageHost,
+  kRewardsInternalsHost,
+#endif  // BUILDFLAG(BRAVE_REWARDS_ENABLED)
+#if !defined(OS_ANDROID)
+  kWelcomeHost,
+#endif  // !defined(OS_ANDROID)
+#if BUILDFLAG(BRAVE_WALLET_ENABLED)
+  kWalletHost,
+#endif  // BUILDFLAG(BRAVE_WALLET_ENABLED)
+};
+
+const size_t kNumberOfBraveHostURLs =
+    base::size(kBraveHostURLs);
