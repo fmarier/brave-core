@@ -1,0 +1,12 @@
+diff --git a/chrome/browser/web_applications/components/web_app_file_handler_registration_linux.cc b/chrome/browser/web_applications/components/web_app_file_handler_registration_linux.cc
+index c334ed25ae8e891bad371e29a0375383b7aada9e..509c5020858d498c486e6e340a46d37f23bad52e 100644
+--- a/chrome/browser/web_applications/components/web_app_file_handler_registration_linux.cc
++++ b/chrome/browser/web_applications/components/web_app_file_handler_registration_linux.cc
+@@ -112,6 +112,7 @@ bool DoRegisterMimeTypes(base::FilePath filename, std::string file_contents) {
+                                 temp_file_path.value()};
+ 
+   int exit_code;
++  LOG(ERROR) << "====> DoRegisterMimeTypes()";
+   shell_integration_linux::LaunchXdgUtility(argv, &exit_code);
+   bool result = exit_code == 0;
+   if (!result)

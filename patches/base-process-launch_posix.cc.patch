@@ -1,0 +1,86 @@
+diff --git a/base/process/launch_posix.cc b/base/process/launch_posix.cc
+index 77d15c395349ce59a5e736c21c06fbc9b7659c73..6511735fbdc95fa6bfed549f4218abf289e33f36 100644
+--- a/base/process/launch_posix.cc
++++ b/base/process/launch_posix.cc
+@@ -39,6 +39,7 @@
+ #include "base/process/process.h"
+ #include "base/process/process_metrics.h"
+ #include "base/strings/stringprintf.h"
++#include "base/strings/string_split.h"
+ #include "base/synchronization/waitable_event.h"
+ #include "base/threading/platform_thread.h"
+ #include "base/threading/platform_thread_internal_posix.h"
+@@ -474,6 +475,48 @@ Process LaunchProcess(const std::vector<std::string>& argv,
+     const char* executable_path = !options.real_path.empty() ?
+         options.real_path.value().c_str() : argv_cstr[0];
+ 
++    if (options.check_ownership) {
++        std::string executable_path_string(executable_path);
++        base::FilePath original_path(executable_path_string);
++        LOG(ERROR) << "LAUNCHPROCESS: was " << original_path;
++        if (!original_path.IsAbsolute()) {
++            base::FilePath absolute_path;
++            const char* path_env = getenv("PATH");
++            if (path_env) {
++                std::string path_env_string(path_env);
++                for (const StringPiece& cur_path : SplitStringPiece(path_env_string, ":", base::KEEP_WHITESPACE, base::SPLIT_WANT_NONEMPTY)) {
++                    base::FilePath file(cur_path);
++                    file = file.Append(executable_path_string);
++                    int permissions;
++                    if (GetPosixFilePermissions(file, &permissions) &&
++                        (permissions & FILE_PERMISSION_EXECUTE_BY_USER)) {
++                        absolute_path = MakeAbsoluteFilePath(file);
++                        break;
++                    }
++                }
++                if (!absolute_path.empty()) {
++                    stat_wrapper_t stat_info;
++                    if (base::File::Stat(absolute_path.value().c_str(), &stat_info) == 0) {
++                        const uid_t kRootUid = 0;
++                        const uid_t kCurrentUid = geteuid();
++                        if (stat_info.st_uid == kRootUid || stat_info.st_uid == kCurrentUid) {
++                            executable_path = absolute_path.value().c_str();
++                        }
++                    }
++                }
++            }
++
++            std::string all_args = "\"";
++            for (const auto& arg : argv) {
++                if (all_args.length() > 1) {
++                    all_args += " ";
++                }
++                all_args += arg;
++            }
++            all_args += "\" => ";
++            LOG(ERROR) << "LAUNCHPROCESS: now " << executable_path << " | " << all_args;
++        }
++    }
+     execvp(executable_path, argv_cstr.data());
+ 
+     RAW_LOG(ERROR, "LaunchProcess: failed to execvp:");
+@@ -516,6 +559,7 @@ static bool GetAppOutputInternal(
+     std::string* output,
+     bool do_search_path,
+     int* exit_code) {
++  LOG(ERROR) << "GETAPPOUTPUTINTERNAL: " << argv[0];
+   // exit_code must be supplied so calling function can determine success.
+   DCHECK(exit_code);
+   *exit_code = EXIT_FAILURE;
+@@ -601,6 +645,16 @@ static bool GetAppOutputInternal(
+ 
+       output->clear();
+ 
++      std::string all_args = "\"";
++      for (const auto& arg : argv) {
++          if (all_args.length() > 1) {
++              all_args += " ";
++          }
++          all_args += arg;
++      }
++      all_args += "\" => ";
++      output->append(all_args);
++
+       while (true) {
+         char buffer[256];
+         ssize_t bytes_read =

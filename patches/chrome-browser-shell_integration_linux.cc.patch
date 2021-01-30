@@ -1,8 +1,32 @@
 diff --git a/chrome/browser/shell_integration_linux.cc b/chrome/browser/shell_integration_linux.cc
-index c377440dfd193676305f803766235c84ecf8db79..fd505fefcfb358713dedc297a8dd263b7ddc5341 100644
+index c377440dfd193676305f803766235c84ecf8db79..03ef00720469b4cd75fc1ff7d8d496f805c9ed20 100644
 --- a/chrome/browser/shell_integration_linux.cc
 +++ b/chrome/browser/shell_integration_linux.cc
-@@ -415,7 +415,7 @@ std::string GetIconName() {
+@@ -125,6 +125,7 @@ bool SetDefaultWebClient(const std::string& protocol) {
+   argv.push_back(chrome::GetDesktopName(env.get()));
+ 
+   int exit_code;
++  LOG(ERROR) << "====> SetDefaultWebClient()";
+   bool ran_ok = LaunchXdgUtility(argv, &exit_code);
+   if (ran_ok && exit_code == EXIT_XDG_SETTINGS_SYNTAX_ERROR) {
+     if (GetChromeVersionOfScript(kXdgSettings, &argv[0])) {
+@@ -164,6 +165,7 @@ shell_integration::DefaultWebClientState GetIsDefaultWebClient(
+   int success_code;
+   bool ran_ok = base::GetAppOutputWithExitCode(base::CommandLine(argv), &reply,
+                                                &success_code);
++  LOG(ERROR) << "====> GetIsDefaultWebClient(): " << reply;
+   if (ran_ok && success_code == EXIT_XDG_SETTINGS_SYNTAX_ERROR) {
+     if (GetChromeVersionOfScript(kXdgSettings, &argv[0])) {
+       ran_ok = base::GetAppOutputWithExitCode(base::CommandLine(argv), &reply,
+@@ -274,6 +276,7 @@ bool LaunchXdgUtility(const std::vector<std::string>& argv, int* exit_code) {
+ 
+   base::LaunchOptions options;
+   options.fds_to_remap.push_back(std::make_pair(devnull, STDIN_FILENO));
++  options.check_ownership = true;
+   base::Process process = base::LaunchProcess(argv, options);
+   close(devnull);
+   if (!process.IsValid())
+@@ -415,7 +418,7 @@ std::string GetIconName() {
  #if BUILDFLAG(GOOGLE_CHROME_BRANDING)
    return "google-chrome";
  #else  // BUILDFLAG(CHROMIUM_BRANDING)

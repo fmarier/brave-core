@@ -1,0 +1,17 @@
+diff --git a/base/process/launch.h b/base/process/launch.h
+index 84963b26045a1139d1df226cbe2316aee6e7e071..5aef6533574e949183f6f31585fec8cfef1e77e3 100644
+--- a/base/process/launch.h
++++ b/base/process/launch.h
+@@ -300,6 +300,12 @@ struct BASE_EXPORT LaunchOptions {
+   // process' controlling terminal.
+   int ctrl_terminal_fd = -1;
+ #endif  // BUILDFLAG(IS_CHROMEOS_ASH) || BUILDFLAG(IS_CHROMEOS_LACROS)
++
++#if defined(OS_POSIX)
++  // If true, ensure that any binary not referenced using an absolute
++  // path is owned by root or the current user.
++  bool check_ownership = false;
++#endif  // defined(OS_POSIX)
+ };
+ 
+ // Launch a process via the command line |cmdline|.
