@@ -1,0 +1,17 @@
+diff --git a/components/safe_browsing/core/common/safebrowsing_switches.cc b/components/safe_browsing/core/common/safebrowsing_switches.cc
+index 1cae3f4672ab0a64728ecd67c281f62f2dbac45d..d4859e4eebba7e666d4a78a6ff4427646902f218 100644
+--- a/components/safe_browsing/core/common/safebrowsing_switches.cc
++++ b/components/safe_browsing/core/common/safebrowsing_switches.cc
+@@ -16,6 +16,12 @@ namespace switches {
+ const char kSbManualDownloadBlacklist[] =
+     "safebrowsing-manual-download-blacklist";
+ 
++// List of comma-separated extension IDs which should be treated as
++// BLOCKLISTED_MALWARE. This is used for manual testing when looking
++// for ways to trigger the crx-list-info request.
++const char kSbManualExtensionBlocklist[] =
++    "safebrowsing-manual-extension-blocklist";
++
+ // Enable Safe Browsing Enhanced Protection.
+ const char kSbEnableEnhancedProtection[] =
+     "safebrowsing-enable-enhanced-protection";

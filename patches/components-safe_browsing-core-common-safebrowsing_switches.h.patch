@@ -1,0 +1,12 @@
+diff --git a/components/safe_browsing/core/common/safebrowsing_switches.h b/components/safe_browsing/core/common/safebrowsing_switches.h
+index cf52e5e6625130e73f363a0332a3ea4222fa5b81..c136bedc4c92dfa234ff681c72f5549ed37d70f4 100644
+--- a/components/safe_browsing/core/common/safebrowsing_switches.h
++++ b/components/safe_browsing/core/common/safebrowsing_switches.h
+@@ -9,6 +9,7 @@ namespace safe_browsing {
+ namespace switches {
+ 
+ extern const char kSbManualDownloadBlacklist[];
++extern const char kSbManualExtensionBlocklist[];
+ extern const char kSbEnableEnhancedProtection[];
+ 
+ }  // namespace switches

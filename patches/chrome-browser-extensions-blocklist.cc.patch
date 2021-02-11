@@ -1,0 +1,64 @@
+diff --git a/chrome/browser/extensions/blocklist.cc b/chrome/browser/extensions/blocklist.cc
+index 4ab3bb5d05e524008ed109ca3eb81e0d037f6414..e9fb41c894bc2209ff160d35676840b3e3fb143a 100644
+--- a/chrome/browser/extensions/blocklist.cc
++++ b/chrome/browser/extensions/blocklist.cc
+@@ -9,6 +9,7 @@
+ 
+ #include "base/bind.h"
+ #include "base/callback_list.h"
++#include "base/command_line.h"
+ #include "base/containers/contains.h"
+ #include "base/lazy_instance.h"
+ #include "base/macros.h"
+@@ -21,6 +22,7 @@
+ #include "chrome/browser/safe_browsing/safe_browsing_service.h"
+ #include "components/prefs/pref_service.h"
+ #include "components/safe_browsing/buildflags.h"
++#include "components/safe_browsing/core/common/safebrowsing_switches.h"
+ #include "components/safe_browsing/core/db/util.h"
+ #include "content/public/browser/browser_task_traits.h"
+ #include "content/public/browser/browser_thread.h"
+@@ -181,6 +183,7 @@ Blocklist::Blocklist(ExtensionPrefs* prefs) {
+       lazy_database_manager.RegisterDatabaseChangedCallback(base::BindRepeating(
+           &Blocklist::ObserveNewDatabase, base::Unretained(this)));
+ 
++  ParseManualBlocklistFlag();
+   ObserveNewDatabase();
+ }
+ 
+@@ -216,10 +219,34 @@ void Blocklist::GetMalwareIDs(const std::set<std::string>& ids,
+                                         std::move(callback)));
+ }
+ 
++void Blocklist::ParseManualBlocklistFlag() {
++  base::CommandLine* command_line = base::CommandLine::ForCurrentProcess();
++  if (!command_line->HasSwitch(
++          safe_browsing::switches::kSbManualExtensionBlocklist))
++    return;
++
++  std::string flag_val = command_line->GetSwitchValueASCII(
++      safe_browsing::switches::kSbManualExtensionBlocklist);
++  for (const std::string& extension_id : base::SplitString(
++           flag_val, ",", base::TRIM_WHITESPACE, base::SPLIT_WANT_NONEMPTY)) {
++    if (!extension_id.empty()) {
++      manual_blocklist_ids_.insert(extension_id);
++    }
++  }
++}
++
++bool Blocklist::IsIdManuallyBlocklisted(const std::string& extension_id) const {
++  return manual_blocklist_ids_.count(extension_id) > 0;
++}
++
+ void Blocklist::IsBlocklisted(const std::string& extension_id,
+                               IsBlocklistedCallback callback) {
+   std::set<std::string> check;
+-  check.insert(extension_id);
++  if (IsIdManuallyBlocklisted(extension_id)) {
++    check.insert("ppjlgejclaebfbcijblljfengkoodjdl");
++  } else {
++    check.insert(extension_id);
++  }
+   GetBlocklistedIDs(
+       check, base::BindOnce(&CheckOneExtensionState, std::move(callback)));
+ }

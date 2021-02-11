@@ -1,0 +1,29 @@
+diff --git a/chrome/browser/extensions/blocklist.h b/chrome/browser/extensions/blocklist.h
+index 118e101156fb2dcde207c69b0c17c7dcbb4d289e..249ecf6bc25ef6c493683ca78241e2c83364e39b 100644
+--- a/chrome/browser/extensions/blocklist.h
++++ b/chrome/browser/extensions/blocklist.h
+@@ -137,6 +137,13 @@ class Blocklist : public KeyedService, public base::SupportsWeakPtr<Blocklist> {
+   void ReturnBlocklistStateMap(GetBlocklistedIDsCallback callback,
+                                const std::set<std::string>& blocklisted_ids);
+ 
++  // Parse a flag of blocklisted extension IDs to treat as malware.
++  // This is used for testing.
++  void ParseManualBlocklistFlag();
++
++  // Return true if this extension ID is blocklisted via flag (for testing).
++  bool IsIdManuallyBlocklisted(const std::string& extension_id) const;
++
+   base::ObserverList<Observer>::Unchecked observers_;
+ 
+   base::CallbackListSubscription database_updated_subscription_;
+@@ -157,6 +164,10 @@ class Blocklist : public KeyedService, public base::SupportsWeakPtr<Blocklist> {
+   std::list<std::pair<std::vector<std::string>, base::OnceClosure>>
+       state_requests_;
+ 
++  // List of extension IDs that are blocklisted manually by flag.
++  // Normally empty.
++  std::set<std::string> manual_blocklist_ids_;
++
+   DISALLOW_COPY_AND_ASSIGN(Blocklist);
+ };
+ 
